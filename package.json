@@ -1,0 +1,13 @@
+{
+  "name": "radar-vagas",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Radar diário de vagas (SDR/BDR/Pré-vendas). Tudo local.",
+  "scripts": {
+    "coletar": "node scripts/coletar.mjs",
+    "painel": "node scripts/gerar_painel.mjs",
+    "curriculos": "node scripts/gerar_curriculos.mjs"
+  },
+  "dependencies": { "docx": "^9.0.0" }
+}

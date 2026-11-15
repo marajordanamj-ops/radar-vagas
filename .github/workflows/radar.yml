@@ -1,0 +1,53 @@
+name: Radar de vagas
+on:
+  schedule:
+    - cron: "0 12 * * *"   # 09:00 no horário de Brasília (o GitHub usa UTC e pode atrasar alguns minutos)
+  workflow_dispatch:        # permite rodar na hora pelo botão "Run workflow"
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  radar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: github-pages
+      url: ${{ steps.publicar.outputs.page_url }}
+    env:
+      TZ: America/Sao_Paulo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - name: Coletar, avaliar e montar o painel
+        id: rodada
+        continue-on-error: true
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          CURRICULO_JSON: ${{ secrets.CURRICULO_JSON }}
+        run: |
+          node scripts/coletar.mjs
+          node scripts/avaliar.mjs
+          node scripts/gerar_curriculos.mjs
+          node scripts/gerar_painel.mjs
+      - name: Painel de falha (não mostrar dados velhos)
+        if: steps.rodada.outcome == 'failure'
+        run: |
+          rm -f dados/rodada.json
+          node scripts/gerar_painel.mjs --falha "A rodada automática falhou. Abra a aba Actions do repositório e veja o registro da execução de hoje."
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - name: Publicar o site
+        id: publicar
+        uses: actions/deploy-pages@v4
+      - name: Marcar a execução como falha
+        if: steps.rodada.outcome == 'failure'
+        run: exit 1

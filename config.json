@@ -1,0 +1,47 @@
+{
+  "perfil": {
+    "cargos": [
+      "SDR",
+      "BDR",
+      "Pré-vendas"
+    ],
+    "senioridade": "júnior",
+    "modalidade": "remoto",
+    "pais": "Brasil",
+    "idiomas": "não incluir no currículo",
+    "formacao": "Bacharelado em Enfermagem (completo)",
+    "salarioMinimo": 2600,
+    "empresas": "todas"
+  },
+  "janelaHoras": 24,
+  "notaMinima": 70,
+  "horarioRodada": "09:00",
+  "filtroTitulo": "\\b(sdr|bdr)\\b|pr[eé][- ]?vendas?|sales development|business development rep|inside sales|prospec",
+  "excluirTitulo": "est[aá]gi|aprendiz|s[eê]nior|\\bsr\\b|pleno|\\bpl\\b|coordenad|gerente|head|l[ií]der|arquitet|engenheir",
+  "fontes": {
+    "gupy": {
+      "termos": [
+        "sdr",
+        "bdr",
+        "pré-vendas",
+        "pre vendas",
+        "sales development",
+        "inside sales"
+      ],
+      "apenasRemoto": true
+    },
+    "greenhouse": [
+      "ifoodcarreiras"
+    ],
+    "lever": [
+      "flashapp"
+    ],
+    "leverAgregadores": [
+      "jobgether"
+    ],
+    "ashby": []
+  },
+  "modeloGemini": "auto",
+  "maxVagasPorDia": 12,
+  "publicarCurriculos": false
+}

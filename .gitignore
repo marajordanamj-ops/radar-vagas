@@ -1,0 +1,5 @@
+node_modules/
+site/
+dados/brutas.json
+dados/rodada.json
+curriculo_base.json

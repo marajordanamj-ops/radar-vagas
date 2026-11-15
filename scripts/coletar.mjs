@@ -1,0 +1,89 @@
+// Coleta vagas dos quadros configurados em config.json e grava dados/brutas.json.
+// Só entra o que tem data de publicação confirmada dentro da janela. Cada fonte registra se respondeu.
+// Requer Node 18+ (fetch nativo). Não envia nenhum dado pessoal: só faz leituras públicas.
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const raiz = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const cfg = JSON.parse(fs.readFileSync(path.join(raiz, "config.json"), "utf8"));
+const agora = Date.now();
+const limite = agora - cfg.janelaHoras * 36e5;
+const reTit = new RegExp(cfg.filtroTitulo, "i");
+const reExc = new RegExp(cfg.excluirTitulo, "i");
+const fontes = [], vagas = [], semData = [];
+const limpar = (h) => String(h || "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&amp;/g, "&").replace(/&nbsp;/g, " ")
+  .replace(/<(script|style)[\s\S]*?<\/\1>/gi, " ").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 7000);
+
+async function baixar(url, tipo = "json") {
+  const r = await fetch(url, { headers: { "user-agent": "Mozilla/5.0 (radar-vagas; uso pessoal)", accept: tipo === "json" ? "application/json" : "text/html" }, signal: AbortSignal.timeout(30000) });
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return tipo === "json" ? r.json() : r.text();
+}
+function registrar(v) {
+  if (!reTit.test(v.titulo) || reExc.test(v.titulo)) return false;
+  const t = v.publicadoEm ? new Date(v.publicadoEm).getTime() : NaN;
+  if (Number.isNaN(t)) { semData.push(v); return false; }
+  if (t < limite) return false;
+  vagas.push({ ...v, publicadoEm: new Date(t).toISOString(), horasAtras: Math.round((agora - t) / 36e5) });
+  return true;
+}
+async function fonte(nome, url, fn) {
+  const f = { nome, url, ok: false, total: 0, naJanela: 0 };
+  try { await fn(f); f.ok = true; } catch (e) { f.erro = String(e.cause?.code || e.message || e); }
+  fontes.push(f);
+  console.log(`${f.ok ? "ok   " : "FALHA"} ${nome} total=${f.total} janela=${f.naJanela}${f.erro ? " erro=" + f.erro : ""}`);
+}
+function andar(o, achar) {
+  if (Array.isArray(o)) o.forEach((x) => andar(x, achar));
+  else if (o && typeof o === "object") { if ("publishedDate" in o && (o.name || o.title)) achar(o); Object.values(o).forEach((x) => andar(x, achar)); }
+}
+
+const s = cfg.fontes;
+for (const termo of s.gupy?.termos ?? []) {
+  const url = `https://portal.gupy.io/job-search/term=${encodeURIComponent(termo)}${s.gupy.apenasRemoto ? "&workplaceTypes[]=remote" : ""}`;
+  await fonte(`gupy:${termo}`, url, async (f) => {
+    const html = await baixar(url, "html");
+    const m = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);
+    if (!m) throw new Error("__NEXT_DATA__ não encontrado (a página mudou?)");
+    andar(JSON.parse(m[1]), (j) => {
+      f.total++;
+      if (registrar({ fonte: "Gupy", empresa: j.careerPageName || j.companyName || "?", titulo: j.name || j.title, url: j.jobUrl || j.url, publicadoEm: j.publishedDate,
+        local: [j.city, j.state, j.country].filter(Boolean).join(" - "), modalidade: j.workplaceType || (j.isRemoteWork ? "remote" : ""), tipo: j.type || "" })) f.naJanela++;
+    });
+  });
+}
+for (const b of s.greenhouse ?? []) {
+  const url = `https://boards-api.greenhouse.io/v1/boards/${b}/jobs?content=true`;
+  await fonte(`greenhouse:${b}`, url, async (f) => {
+    for (const j of (await baixar(url)).jobs ?? []) { f.total++;
+      if (registrar({ fonte: "Greenhouse", empresa: b, titulo: j.title, url: j.absolute_url, publicadoEm: j.first_published, local: j.location?.name || "", descricao: limpar(j.content) })) f.naJanela++; }
+  });
+}
+for (const [lista, agregador] of [[s.lever ?? [], false], [s.leverAgregadores ?? [], true]]) {
+  for (const b of lista) {
+    const url = `https://api.lever.co/v0/postings/${b}?mode=json${agregador ? "&location=Brazil" : ""}`;
+    await fonte(`lever:${b}`, url, async (f) => {
+      for (const j of await baixar(url)) { f.total++;
+        if (registrar({ fonte: "Lever", empresa: agregador ? "empresa não identificada" : b, agregador: agregador ? b : undefined, titulo: j.text, url: j.hostedUrl, publicadoEm: j.createdAt,
+          local: j.categories?.location || "", modalidade: j.workplaceType || "",
+          descricao: limpar([j.descriptionPlain, ...(j.lists || []).map((l) => l.text + " " + l.content), j.additionalPlain].join(" ")) })) f.naJanela++; }
+    });
+  }
+}
+for (const b of s.ashby ?? []) {
+  const url = `https://api.ashbyhq.com/posting-api/job-board/${b}`;
+  await fonte(`ashby:${b}`, url, async (f) => {
+    for (const j of (await baixar(url)).jobs ?? []) { f.total++;
+      if (registrar({ fonte: "Ashby", empresa: b, titulo: j.title, url: j.jobUrl, publicadoEm: j.publishedAt, local: j.location || "", modalidade: j.isRemote ? "remote" : "", descricao: limpar(j.descriptionPlain || j.descriptionHtml) })) f.naJanela++; }
+  });
+}
+
+// remove repetidas (mesma URL, ou mesmo título + empresa)
+const vistos = new Set();
+const unicas = vagas.filter((v) => { const k = (v.url || "") + "|" + (v.titulo + v.empresa).toLowerCase(); if (vistos.has(k)) return false; vistos.add(k); return true; });
+fs.mkdirSync(path.join(raiz, "dados"), { recursive: true });
+fs.writeFileSync(path.join(raiz, "dados/brutas.json"), JSON.stringify({ geradoEm: new Date(agora).toISOString(), janelaHoras: cfg.janelaHoras, fontes, vagas: unicas, semDataConfirmada: semData }, null, 2));
+const okN = fontes.filter((f) => f.ok).length;
+console.log(`\n${unicas.length} vaga(s) na janela; ${semData.length} sem data; ${okN}/${fontes.length} fontes responderam.`);
+if (okN === 0) { console.error("Nenhuma fonte respondeu."); process.exit(2); }
