@@ -24,7 +24,7 @@ async function modelos(chave: string): Promise<string[]> {
   const versao = (n: string) => parseFloat(n.match(/^gemini-([\d.]+)/)![1]);
   nomes.sort((a, b) => versao(b) * 10 - (/lite/.test(b) ? 1 : 0) - (versao(a) * 10 - (/lite/.test(a) ? 1 : 0)));
   if (!nomes.length) throw new Error("Gemini: nenhum modelo disponível para esta chave.");
-  modelosCache = nomes.slice(0, 4);
+  modelosCache = nomes.slice(0, 5);
   return modelosCache;
 }
 
@@ -80,7 +80,7 @@ Descrição da vaga: ${corta(vaga.descricao, 7000)}`;
         const r = await fetch(`${API}/models/${modelo}:generateContent`, {
           method: "POST",
           headers: { "x-goog-api-key": chave, "content-type": "application/json" },
-          signal: AbortSignal.timeout(45000),
+          signal: AbortSignal.timeout(25000),
           body: JSON.stringify({ systemInstruction: { parts: [{ text: sistema }] }, contents: conversa, generationConfig: { temperature: 0.4 } }),
         });
         if (!r.ok) { ultimo = `${modelo}: HTTP ${r.status}`; continue; }
@@ -89,7 +89,7 @@ Descrição da vaga: ${corta(vaga.descricao, 7000)}`;
         if (texto) return json({ texto, modelo });
         ultimo = `${modelo}: resposta vazia`;
       } catch (e) {
-        ultimo = `${modelo}: ${(e as Error).name === "TimeoutError" ? "sem resposta em 45 s" : (e as Error).message}`;
+        ultimo = `${modelo}: ${(e as Error).name === "TimeoutError" ? "sem resposta em 25 s" : (e as Error).message}`;
       }
     }
     return json({ erro: `O Gemini não respondeu (${ultimo}). Tente de novo em instantes.` }, 502);

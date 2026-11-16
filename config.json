@@ -49,7 +49,7 @@
   "maxVagasPorDia": 12,
   "publicarCurriculos": false,
   "supabase": {
-    "url": "",
-    "chavePublica": ""
+    "url": "https://kacnhwurscbpsuewidic.supabase.co",
+    "chavePublica": "sb_publishable_6IXNI_xiw4vIEO9OVTNlXA_mUP3-QNi"
   }
 }
