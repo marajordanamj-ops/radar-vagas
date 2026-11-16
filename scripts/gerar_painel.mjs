@@ -40,7 +40,7 @@ function ficha(v, n) {
       <p class="emp">${esc(v.empresa)}</p>
       <p class="tags"><span>${esc(v.modalidade)}</span><span>${esc(v.contrato)}</span><span>${esc(v.fonte)}</span><span>${esc(idade(v))}</span>${v.abaixoDoCorte ? '<span class="alerta">abaixo do corte de 70</span>' : ""}</p>
     </div>
-    <a class="btn" href="${esc(v.link)}" target="_blank" rel="noopener">Abrir vaga ↗</a>
+    <div class="acoes-vaga"><a class="btn" href="${esc(v.link)}" target="_blank" rel="noopener">Abrir vaga ↗</a><button class="sec ja" data-i="${n}" hidden>Já me candidatei</button></div>
   </header>
   <p class="just">${esc(v.justificativa)}</p>
   <details open><summary>Pontos de atenção</summary><ul>${(v.atencao ?? []).map((a) => `<li>${esc(a)}</li>`).join("")}</ul></details>
@@ -101,17 +101,32 @@ dialog{border:0;border-radius:18px;padding:24px;width:min(380px,92vw);box-shadow
 dialog h3{margin-bottom:12px}dialog label{display:block;font-size:14px;color:var(--suave);margin-top:10px}dialog input{width:100%;font:inherit;border:1px solid var(--linha);border-radius:10px;padding:9px 12px}
 dialog .acoes{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}#login-erro{color:var(--verm);font-size:14px;min-height:20px;margin:8px 0 0}
 .vazio{background:#fff;border-radius:16px;padding:22px;color:var(--suave);text-align:center}
+.acoes-vaga{display:flex;flex-direction:column;gap:6px;align-items:stretch;text-align:center}#pendentes{font-size:13px;font-weight:600;background:var(--rosa);color:#fff;border-radius:999px;padding:2px 10px;margin-left:6px;vertical-align:middle}#pendentes:empty{display:none}
+.cand{background:#fff;border-radius:18px;padding:18px 22px;margin:12px 0;box-shadow:0 6px 22px rgba(60,30,140,.08);border-left:6px solid var(--roxo)}.cand.fim{border-left-color:#b9b6c9;opacity:.8}
+.cand header{display:flex;gap:12px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}.cand h3{font-size:18px}.cand .meta{color:var(--suave);font-size:14px;margin:2px 0 0}
+.cand select,.cand input[type=text],#nova-form input{font:inherit;font-size:14px;border:1px solid var(--linha);border-radius:10px;padding:6px 10px}
+.passos{list-style:none;padding:0;margin:12px 0 8px}.passos li{display:flex;gap:10px;align-items:flex-start;padding:5px 0}.passos input{width:18px;height:18px;margin-top:3px;accent-color:var(--roxo)}
+.passos li.feito span{text-decoration:line-through;color:var(--suave)}.passos .x,.cand .apagar{border:0;background:none;color:var(--suave);cursor:pointer;font-size:13px;margin-left:auto}
+.novo-passo{display:flex;gap:8px}.novo-passo input{flex:1}.nova{border:0}#nova-form{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}#nova-form input{flex:1;min-width:160px}#nova-form label{font-size:14px;color:var(--suave)}
 @media(max-width:600px){td:nth-child(3),th:nth-child(3){display:none}.ia-form{flex-direction:column;align-items:stretch}}`;
 
+const minhas = `<section id="minhas" hidden>
+<h2>Minhas candidaturas <span id="pendentes"></span></h2>
+<div id="minhas-lista"></div>
+<details class="nova"><summary>+ Adicionar candidatura</summary>
+  <form id="nova-form"><input name="empresa" placeholder="Empresa" required><input name="cargo" placeholder="Cargo" required><input name="link" type="url" placeholder="Link da vaga (opcional)"><label>Prazo <input name="prazo" type="date"></label><button class="btn" type="submit">Adicionar</button></form>
+</details>
+</section>`;
 let corpo = "";
 if (falha) {
   corpo += `<div class="falha"><b>A rodada de ${br(hoje)} falhou.</b><br>${esc(falha)}<br>Nenhum resultado de hoje está disponível.${r ? ` A última rodada concluída foi em ${br(r.data)} e aparece abaixo só como referência: são dados antigos.` : ""}</div>`;
 }
 let vagasJs = [];
+if (!r) corpo += minhas;
 if (r) {
   const aprov = r.vagas ?? [], desc = r.descartadas ?? [], fontes = r.fontes ?? [];
   const naJanela = aprov.filter((v) => !v.foraDaJanela && !v.abaixoDoCorte).length;
-  vagasJs = aprov.map((v) => ({ empresa: v.empresa, cargo: v.cargo, descricao: v.descricao || "", candidatura: v.candidatura ?? [], atencao: v.atencao ?? [] }));
+  vagasJs = aprov.map((v) => ({ empresa: v.empresa, cargo: v.cargo, link: v.link, descricao: v.descricao || "", candidatura: v.candidatura ?? [], atencao: v.atencao ?? [] }));
   corpo += `<section class="resumo">
   <div class="card"><b>${naJanela}</b><span>vagas novas com nota 70+</span></div>
   <div class="card"><b>${aprov.filter((v) => v.abaixoDoCorte).length}</b><span>abaixo do corte, como referência</span></div>
@@ -119,6 +134,7 @@ if (r) {
   <div class="card"><b>${fontes.filter((f) => f.ok).length}/${fontes.length}</b><span>fontes responderam</span></div>
 </section>
 ${(r.avisos ?? []).map((a) => `<div class="aviso">${esc(a)}</div>`).join("")}
+${minhas}
 <h2>${falha ? `Última rodada concluída (${br(r.data)}) — dados antigos` : "Vagas para você revisar"}</h2>
 ${aprov.length ? aprov.map(ficha).join("\n") : '<div class="vazio">Nenhuma vaga passou do corte nesta rodada.</div>'}
 <h2>Descartadas e por quê</h2>
@@ -222,15 +238,80 @@ document.addEventListener("submit", (e) => {
   const f = e.target.closest(".ia-form"); if (!f) return; e.preventDefault();
   const t = $("textarea", f), texto = t.value.trim(); if (!texto || !sessao) return; t.value = ""; perguntar(f.closest(".ia"), texto);
 });
+
+// minhas candidaturas (só com login; os dados ficam no Supabase e só a dona os lê)
+const escH = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const dataBr = (d) => (d ? d.split("-").reverse().join("/") : "");
+const SITUACOES = ["Em andamento", "Aguardando retorno", "Entrevista marcada", "Aprovada", "Encerrada"];
+let minhasCand = [];
+async function carregarMinhas() {
+  const sec = $("#minhas"); if (!sec) return;
+  $$(".ja").forEach((b) => (b.hidden = !sessao));
+  if (!sb || !sessao) { sec.hidden = true; return; }
+  sec.hidden = false;
+  const { data, error } = await sb.from("candidaturas").select("*, passos(*)").order("candidatou_em", { ascending: false });
+  const lista = $("#minhas-lista");
+  if (error) { lista.innerHTML = '<div class="vazio">Não consegui carregar suas candidaturas: ' + escH(error.message) + "</div>"; return; }
+  minhasCand = data;
+  const pend = data.filter((c) => c.situacao !== "Encerrada").reduce((n, c) => n + c.passos.filter((p) => !p.feito).length, 0);
+  $("#pendentes").textContent = pend ? pend + (pend === 1 ? " passo a concluir" : " passos a concluir") : "";
+  lista.innerHTML = data.length ? data.map((c) => {
+    const passos = [...c.passos].sort((a, b) => a.ordem - b.ordem || a.criado_em.localeCompare(b.criado_em));
+    const prox = passos.find((p) => !p.feito);
+    return '<article class="cand' + (c.situacao === "Encerrada" ? " fim" : "") + '" data-id="' + c.id + '"><header><div><h3>' + escH(c.cargo) + '</h3><p class="meta"><b>' + escH(c.empresa) + "</b>" +
+      (c.candidatou_em ? " · candidatura em " + dataBr(c.candidatou_em) : "") + (c.prazo ? " · inscrições até " + dataBr(c.prazo) : "") + (c.link ? ' · <a href="' + escH(c.link) + '" target="_blank" rel="noopener">abrir vaga ↗</a>' : "") + "</p>" +
+      (c.obs ? '<p class="meta">' + escH(c.obs) + "</p>" : "") + (prox && c.situacao !== "Encerrada" ? '<p class="meta"><b>Próximo passo:</b> ' + escH(prox.texto) + "</p>" : "") + "</div>" +
+      '<select class="situacao">' + SITUACOES.map((x) => "<option" + (x === c.situacao ? " selected" : "") + ">" + x + "</option>").join("") + "</select></header>" +
+      '<ul class="passos">' + passos.map((p) => '<li class="' + (p.feito ? "feito" : "") + '" data-p="' + p.id + '"><input type="checkbox"' + (p.feito ? " checked" : "") + "><span>" + escH(p.texto) + '</span><button class="x" title="Remover passo">remover</button></li>').join("") + "</ul>" +
+      '<form class="novo-passo"><input type="text" placeholder="Novo passo (ex.: enviar documentos)" required><button class="sec" type="submit">Adicionar passo</button></form>' +
+      '<button class="apagar">Excluir candidatura</button></article>';
+  }).join("") : '<div class="vazio">Nenhuma candidatura registrada ainda. Use "Já me candidatei" em uma vaga ou adicione abaixo.</div>';
+}
+const falhou = (error) => { if (error) alert("Não consegui salvar: " + error.message); return !!error; };
+document.addEventListener("change", async (e) => {
+  const c = e.target.closest(".cand"); if (!c || !sb) return;
+  if (e.target.matches(".passos input")) falhou((await sb.from("passos").update({ feito: e.target.checked }).eq("id", e.target.closest("li").dataset.p)).error);
+  else if (e.target.matches(".situacao")) falhou((await sb.from("candidaturas").update({ situacao: e.target.value }).eq("id", c.dataset.id)).error);
+  else return;
+  carregarMinhas();
+});
+document.addEventListener("click", async (e) => {
+  if (!sb || !sessao) return;
+  const c = e.target.closest(".cand");
+  if (c && e.target.matches(".x")) { falhou((await sb.from("passos").delete().eq("id", e.target.closest("li").dataset.p)).error); carregarMinhas(); }
+  if (c && e.target.matches(".apagar") && confirm("Excluir esta candidatura e os passos dela?")) { falhou((await sb.from("candidaturas").delete().eq("id", c.dataset.id)).error); carregarMinhas(); }
+  const ja = e.target.closest(".ja");
+  if (ja) {
+    const v = VAGAS[Number(ja.dataset.i)];
+    if (minhasCand.some((m) => m.link === v.link)) { alert("Esta vaga já está nas suas candidaturas."); return; }
+    await criarCandidatura({ empresa: v.empresa, cargo: v.cargo, link: v.link });
+    $("#minhas").scrollIntoView({ behavior: "smooth" });
+  }
+});
+async function criarCandidatura(c) {
+  const hoje = new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
+  const { data, error } = await sb.from("candidaturas").insert({ empresa: c.empresa, cargo: c.cargo, link: c.link || null, prazo: c.prazo || null, candidatou_em: hoje }).select().single();
+  if (falhou(error)) return;
+  falhou((await sb.from("passos").insert([{ candidatura_id: data.id, texto: "Preencher o formulário e enviar o currículo", feito: true, ordem: 1 }, { candidatura_id: data.id, texto: "Acompanhar o retorno da empresa", ordem: 2 }])).error);
+  carregarMinhas();
+}
+document.addEventListener("submit", async (e) => {
+  if (!sb || !sessao) return;
+  const np = e.target.closest(".novo-passo");
+  if (np) { e.preventDefault(); const c = np.closest(".cand"), i = $("input", np), m = minhasCand.find((x) => x.id === c.dataset.id);
+    falhou((await sb.from("passos").insert({ candidatura_id: c.dataset.id, texto: i.value.trim(), ordem: Math.max(0, ...(m?.passos ?? []).map((p) => p.ordem)) + 1 })).error); carregarMinhas(); }
+  if (e.target.id === "nova-form") { e.preventDefault(); const f = new FormData(e.target); await criarCandidatura(Object.fromEntries(f)); e.target.reset(); }
+});
+
 pintar();
 if (SUP.url && SUP.chave) {
   try {
     const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
     sb = createClient(SUP.url, SUP.chave);
     sessao = (await sb.auth.getSession()).data.session;
-    sb.auth.onAuthStateChange((_e, s) => { sessao = s; pintar(); });
+    sb.auth.onAuthStateChange((_e, s) => { sessao = s; pintar(); setTimeout(carregarMinhas, 0); });
   } catch (e) { console.error(e); }
-  pintar();
+  pintar(); carregarMinhas();
 }
 </script></body></html>`;
 fs.mkdirSync(path.join(raiz, "site"), { recursive: true });
