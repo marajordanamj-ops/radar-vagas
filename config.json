@@ -43,5 +43,9 @@
   },
   "modeloGemini": "auto",
   "maxVagasPorDia": 12,
-  "publicarCurriculos": false
+  "publicarCurriculos": false,
+  "supabase": {
+    "url": "",
+    "chavePublica": ""
+  }
 }

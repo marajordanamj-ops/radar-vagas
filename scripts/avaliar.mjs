@@ -146,6 +146,7 @@ for (const [i, v] of fila.entries()) {
       contrato: a.contrato || "não informado", modalidade: a.modalidade || "não informado", nota: Math.max(0, Math.min(100, Math.round(Number(a.nota) || 0))),
       justificativa: a.justificativa || "", atencao: a.atencao ?? [], candidatura: a.candidatura ?? [], palavrasFaltantes: a.palavrasFaltantes ?? [],
       curriculo: a.curriculo, arquivoCurriculo: `curriculos/curriculo_${id}.docx`,
+      descricao: String(d.texto || "").slice(0, 6000),
     });
     console.log(`avaliada: ${v.empresa} - ${v.titulo} -> ${a.nota}`);
   } catch (e) {

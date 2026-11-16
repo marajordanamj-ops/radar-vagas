@@ -33,3 +33,12 @@ Todo dia por volta das 8h17 (horário de Brasília), para estar pronto às 9h, o
 - As fontes de vagas podem recusar acessos vindos do GitHub. A tabela "Fontes consultadas" do site mostra quais responderam.
 - A Gupy mostra cerca de 12 vagas por termo: a cobertura é parcial.
 - No máximo 12 vagas por dia são avaliadas, para caber no nível gratuito do Gemini.
+
+## Assistente de candidatura (login com Supabase)
+O site tem um assistente por vaga (responder perguntas de formulário, ajustar a candidatura, roteiro de vídeo, conversa livre). Ele só funciona depois de ligar um projeto do Supabase:
+1. Crie um projeto em supabase.com.
+2. Em Authentication, crie o seu usuário (e-mail e senha) e desative o cadastro de novos usuários.
+3. Em Edge Functions, crie a função `assistente` com o código de `supabase/functions/assistente/index.ts`.
+4. Nos segredos das Edge Functions, crie `GEMINI_API_KEY`, `CURRICULO_JSON` e `EMAIL_PERMITIDO` (o e-mail do passo 2).
+5. Em `config.json`, preencha `supabase.url` e `supabase.chavePublica` (a chave pública do projeto; nunca a chave secreta).
+A chave do Gemini e o currículo ficam só nos segredos do Supabase; o navegador nunca os recebe.
