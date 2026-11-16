@@ -67,12 +67,20 @@ async function gemini(prompt) {
   let ultimo = "";
   for (const modelo of modelos) {
     for (let tentativa = 0; tentativa < 3; tentativa++) {
-      const r = await fetch(`${API}/models/${modelo}:generateContent`, {
-        method: "POST", headers: { "x-goog-api-key": CHAVE, "content-type": "application/json" }, signal: AbortSignal.timeout(120000),
-        body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { temperature: 0.3, responseMimeType: "application/json" } }),
-      });
+      let r;
+      try {
+        r = await fetch(`${API}/models/${modelo}:generateContent`, {
+          method: "POST", headers: { "x-goog-api-key": CHAVE, "content-type": "application/json" }, signal: AbortSignal.timeout(75000),
+          body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { temperature: 0.3, responseMimeType: "application/json" } }),
+        });
+      } catch (e) { // demorou demais ou caiu a conexão: passa para o próximo modelo
+        ultimo = `${modelo}: ${e.name === "TimeoutError" ? "sem resposta em 75 s" : e.message}`;
+        console.log(`  Gemini ${ultimo}; tentando outro modelo`);
+        break;
+      }
       if (r.ok) {
         const j = await r.json();
+        if (modelo !== modelos[0]) modelos = [modelo, ...modelos.filter((m) => m !== modelo)]; // o que respondeu passa a ser o primeiro
         const t = (j.candidates?.[0]?.content?.parts ?? []).map((p) => p.text || "").join("");
         try { return JSON.parse(t.replace(/^```(json)?|```$/g, "").trim()); } catch { ultimo = `${modelo}: resposta não é JSON`; continue; }
       }
