@@ -122,7 +122,7 @@ ${(r.avisos ?? []).map((a) => `<div class="aviso">${esc(a)}</div>`).join("")}
 <h2>${falha ? `Última rodada concluída (${br(r.data)}) — dados antigos` : "Vagas para você revisar"}</h2>
 ${aprov.length ? aprov.map(ficha).join("\n") : '<div class="vazio">Nenhuma vaga passou do corte nesta rodada.</div>'}
 <h2>Descartadas e por quê</h2>
-${desc.length ? `<table><tr><th>Vaga</th><th>Fonte / data</th><th>Motivo</th></tr>${desc.map((d) => `<tr><td><b>${esc(d.cargo)}</b><br>${esc(d.empresa)}</td><td>${esc(d.fonte)}<br>${esc(d.data)}</td><td>${esc(d.motivo)}</td></tr>`).join("")}</table>` : '<div class="vazio">Nenhuma vaga descartada.</div>'}
+${desc.length ? `<table><tr><th>Vaga</th><th>Fonte / data</th><th>Motivo</th></tr>${desc.map((d) => `<tr><td><b>${d.link ? `<a href="${esc(d.link)}" target="_blank" rel="noopener">${esc(d.cargo)}</a>` : esc(d.cargo)}</b><br>${esc(d.empresa)}</td><td>${esc(d.fonte)}<br>${esc(d.data)}</td><td>${esc(d.motivo)}</td></tr>`).join("")}</table>` : '<div class="vazio">Nenhuma vaga descartada.</div>'}
 <details style="border:0;margin-top:28px"><summary>Fontes consultadas (${fontes.filter((f) => f.ok).length} de ${fontes.length} responderam)</summary>
 <table style="margin-top:10px"><tr><th>Fonte</th><th>Situação</th><th>Detalhe</th></tr>${fontes.map((f) => `<tr><td>${esc(f.nome)}</td><td class="${f.ok ? "ok" : "nok"}">${f.ok ? "Respondeu" : "Não respondeu"}</td><td>${esc(f.detalhe)}</td></tr>`).join("")}</table></details>`;
 }

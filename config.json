@@ -41,7 +41,11 @@
     ],
     "ashby": []
   },
-  "modeloGemini": "auto",
+  "modeloGemini": [
+    "gemini-3.6-flash",
+    "gemini-3.5-flash",
+    "auto"
+  ],
   "maxVagasPorDia": 12,
   "publicarCurriculos": false,
   "supabase": {

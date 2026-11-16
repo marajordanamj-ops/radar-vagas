@@ -50,7 +50,7 @@ async function descricao(v) {
 // ---- Gemini
 let modelos = [];
 async function escolherModelos() {
-  if (cfg.modeloGemini && cfg.modeloGemini !== "auto") return [cfg.modeloGemini];
+  const preferidos = [].concat(cfg.modeloGemini ?? []).filter((m) => m && m !== "auto");
   const r = await fetch(`${API}/models?pageSize=200`, { headers: { "x-goog-api-key": CHAVE } });
   if (!r.ok) throw new Error(`Gemini: não consegui listar os modelos (HTTP ${r.status}). A chave é válida?`);
   const nomes = ((await r.json()).models ?? [])
@@ -60,33 +60,33 @@ async function escolherModelos() {
   const versao = (n) => parseFloat(n.match(/^gemini-([\d.]+)/)[1]);
   const peso = (n) => versao(n) * 10 - (/preview|exp/.test(n) ? 1000 : 0) - (/lite/.test(n) ? 1 : 0); // estáveis primeiro
   nomes.sort((a, b) => peso(b) - peso(a));
-  if (!nomes.length) throw new Error("Gemini: nenhum modelo 'flash' disponível para esta chave.");
-  return nomes.slice(0, 4);
+  if (!nomes.length && !preferidos.length) throw new Error("Gemini: nenhum modelo 'flash' disponível para esta chave.");
+  return [...new Set([...preferidos, ...nomes])].slice(0, 4);
 }
 async function gemini(prompt) {
   let ultimo = "";
-  for (const modelo of modelos) {
-    for (let tentativa = 0; tentativa < 3; tentativa++) {
+  for (const volta of [1, 2]) {
+    if (volta === 2) { console.log("  Gemini: nenhum modelo respondeu; nova tentativa em 45 s"); await dormir(process.env.TESTE ? 10 : 45000); }
+    for (const modelo of [...modelos]) {
       let r;
       try {
         r = await fetch(`${API}/models/${modelo}:generateContent`, {
-          method: "POST", headers: { "x-goog-api-key": CHAVE, "content-type": "application/json" }, signal: AbortSignal.timeout(75000),
-          body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { temperature: 0.3, responseMimeType: "application/json" } }),
+          method: "POST", headers: { "x-goog-api-key": CHAVE, "content-type": "application/json" }, signal: AbortSignal.timeout(60000),
+          body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: prompt }] }], generationConfig: { temperature: 0, responseMimeType: "application/json" } }),
         });
       } catch (e) { // demorou demais ou caiu a conexão: passa para o próximo modelo
-        ultimo = `${modelo}: ${e.name === "TimeoutError" ? "sem resposta em 75 s" : e.message}`;
+        ultimo = `${modelo}: ${e.name === "TimeoutError" ? "sem resposta em 60 s" : e.message}`;
         console.log(`  Gemini ${ultimo}; tentando outro modelo`);
-        break;
+        continue;
       }
       if (r.ok) {
         const j = await r.json();
         if (modelo !== modelos[0]) modelos = [modelo, ...modelos.filter((m) => m !== modelo)]; // o que respondeu passa a ser o primeiro
         const t = (j.candidates?.[0]?.content?.parts ?? []).map((p) => p.text || "").join("");
-        try { return JSON.parse(t.replace(/^```(json)?|```$/g, "").trim()); } catch { ultimo = `${modelo}: resposta não é JSON`; continue; }
+        try { return JSON.parse(t.replace(/^```(json)?|```$/g, "").trim()); } catch { ultimo = `${modelo}: resposta não é JSON`; console.log(`  Gemini ${ultimo}`); continue; }
       }
       ultimo = `${modelo}: HTTP ${r.status}`;
-      if (r.status === 429 || r.status >= 500) { await dormir(20000 * (tentativa + 1)); continue; }
-      break; // 400/403/404: tenta o próximo modelo
+      console.log(`  Gemini ${ultimo}; tentando outro modelo`);
     }
   }
   throw new Error(`Gemini não respondeu (${ultimo}).`);
@@ -103,7 +103,7 @@ REGRA DE OURO: use SOMENTE fatos do currículo acima. Não invente experiência,
 
 Devolva este JSON:
 {
- "descartar": true|false,            // true se: estágio, fora do Brasil, não é remota, exige idioma que ela não tem, salário informado abaixo do mínimo, ou não é vaga de pré-vendas/SDR/BDR
+ "descartar": true|false,            // true se: estágio, fora do Brasil, não é remota, exige idioma que ela não tem, ou não é vaga de pré-vendas/SDR/BDR. Salário: descarte só se a remuneração total informada (fixo + variável máxima) ficar abaixo do mínimo; se só o fixo ficar abaixo, NÃO descarte e registre isso em atencao
  "motivoDescarte": "frase curta ou vazio",
  "nota": 0-100,                      // aderência honesta ao currículo, considerando nível júnior e formação em Enfermagem
  "justificativa": "uma linha",
@@ -131,9 +131,10 @@ if (brutas.vagas.length > fila.length) rodada.avisos.push(`Havia ${brutas.vagas.
 if (!brutas.vagas.length) rodada.avisos.push(`Nenhuma vaga com data confirmada nas últimas ${brutas.janelaHoras} horas nas fontes consultadas.`);
 const fmt = (iso) => new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 const avaliadas = [];
-let erros = 0;
+let erros = 0, geminiFora = false;
 for (const [i, v] of fila.entries()) {
-  const basico = { empresa: v.empresa, cargo: v.titulo, fonte: v.fonte, data: fmt(v.publicadoEm) };
+  const basico = { empresa: v.empresa, cargo: v.titulo, fonte: v.fonte, data: fmt(v.publicadoEm), link: v.url };
+  if (geminiFora) { erros++; rodada.descartadas.push({ ...basico, naoAvaliada: true, motivo: "Não foi avaliada: o Gemini não estava respondendo nesta rodada. Abra a vaga e veja você mesma." }); continue; }
   try {
     const d = await descricao(v);
     if (d.fechada) { rodada.descartadas.push({ ...basico, motivo: `Vaga fechada: ${d.fechada}.` }); continue; }
@@ -151,11 +152,12 @@ for (const [i, v] of fila.entries()) {
     console.log(`avaliada: ${v.empresa} - ${v.titulo} -> ${a.nota}`);
   } catch (e) {
     erros++;
-    rodada.descartadas.push({ ...basico, motivo: `Não foi possível avaliar: ${e.message}` });
+    if (/^Gemini não respondeu/.test(e.message)) geminiFora = true; // não insiste nas próximas vagas
+    rodada.descartadas.push({ ...basico, naoAvaliada: true, motivo: `Não foi avaliada: ${e.message} Abra a vaga e veja você mesma.` });
     console.log(`ERRO em ${v.empresa} - ${v.titulo}: ${e.message}`);
   }
 }
-if (fila.length && erros === fila.length) throw new Error("Nenhuma vaga pôde ser avaliada (veja os erros acima).");
+if (erros) rodada.avisos.push(`${erros} vaga(s) nova(s) não foram avaliadas porque o Gemini não respondeu. Elas estão na lista de descartadas, com o link, para você abrir.`);
 
 avaliadas.sort((a, b) => b.nota - a.nota);
 const aprovadas = avaliadas.filter((v) => v.nota >= cfg.notaMinima);
