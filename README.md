@@ -1,6 +1,6 @@
 # Radar de vagas — site no GitHub
 
-Todo dia por volta das 8h17 (horário de Brasília), para estar pronto às 9h, o GitHub busca vagas de SDR, BDR e Pré-vendas, pede a avaliação ao Gemini e publica o resultado em um site. Nada é enviado nem candidatado: você revisa e você se candidata.
+Todo dia por volta das 8h17 (horário de Brasília), para estar pronto às 9h, o GitHub busca vagas de SDR, BDR, Pré-vendas e Customer Success, pede a avaliação ao Gemini e publica o resultado em um site. Nada é enviado nem candidatado: você revisa e você se candidata.
 
 ## Como colocar no ar (uma vez só)
 

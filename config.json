@@ -3,7 +3,8 @@
     "cargos": [
       "SDR",
       "BDR",
-      "Pré-vendas"
+      "Pré-vendas",
+      "Customer Success"
     ],
     "senioridade": "júnior",
     "modalidade": "remoto",
@@ -16,7 +17,7 @@
   "janelaHoras": 24,
   "notaMinima": 70,
   "horarioRodada": "09:00",
-  "filtroTitulo": "\\b(sdr|bdr)\\b|pr[eé][- ]?vendas?|sales development|business development rep|inside sales|prospec",
+  "filtroTitulo": "\\b(sdr|bdr)\\b|pr[eé][- ]?vendas?|sales development|business development rep|inside sales|prospec|customer success|sucesso d[oe] cliente",
   "excluirTitulo": "est[aá]gi|aprendiz|s[eê]nior|\\bsr\\b|pleno|\\bpl\\b|coordenad|gerente|head|l[ií]der|arquitet|engenheir",
   "fontes": {
     "gupy": {
@@ -26,7 +27,9 @@
         "pré-vendas",
         "pre vendas",
         "sales development",
-        "inside sales"
+        "inside sales",
+        "customer success",
+        "sucesso do cliente"
       ],
       "apenasRemoto": true
     },
@@ -51,5 +54,6 @@
   "supabase": {
     "url": "https://kacnhwurscbpsuewidic.supabase.co",
     "chavePublica": "sb_publishable_6IXNI_xiw4vIEO9OVTNlXA_mUP3-QNi"
-  }
+  },
+  "bonusSaude": 8
 }

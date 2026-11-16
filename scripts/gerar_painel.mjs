@@ -149,7 +149,7 @@ const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><met
 <title>Radar de vagas — ${br(falha ? hoje : r.data)}</title><style>${css}</style></head><body>
 <div class="topo"><div>
   <div class="linha"><h1>Radar de vagas</h1><div class="conta" id="conta"></div></div>
-  <p>${falha ? `Painel gerado em ${br(hoje)}` : `Rodada de ${br(r.data)} às ${esc(r.hora)}`} · SDR, BDR e Pré-vendas · júnior · remoto · Brasil</p>
+  <p>${falha ? `Painel gerado em ${br(hoje)}` : `Rodada de ${br(r.data)} às ${esc(r.hora)}`} · SDR, BDR, Pré-vendas e Customer Success · júnior · remoto · Brasil</p>
   <p>Atualizado todo dia antes das 9h. Nada é enviado: você revisa e você se candidata.</p>
 </div></div>
 <main>

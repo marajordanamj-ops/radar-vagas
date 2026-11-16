@@ -103,9 +103,9 @@ REGRA DE OURO: use SOMENTE fatos do currículo acima. Não invente experiência,
 
 Devolva este JSON:
 {
- "descartar": true|false,            // true se: estágio, fora do Brasil, não é remota, exige idioma que ela não tem, ou não é vaga de pré-vendas/SDR/BDR. Salário: descarte só se a remuneração total informada (fixo + variável máxima) ficar abaixo do mínimo; se só o fixo ficar abaixo, NÃO descarte e registre isso em atencao
+ "descartar": true|false,            // true se: estágio, fora do Brasil, não é remota, exige idioma que ela não tem, ou não é vaga de pré-vendas (SDR/BDR) nem de Customer Success / Sucesso do Cliente. Salário: descarte só se a remuneração total informada (fixo + variável máxima) ficar abaixo do mínimo; se só o fixo ficar abaixo, NÃO descarte e registre isso em atencao
  "motivoDescarte": "frase curta ou vazio",
- "nota": 0-100,                      // aderência honesta ao currículo, considerando nível júnior e formação em Enfermagem
+ "nota": 0-100,                      // aderência honesta ao currículo, considerando nível júnior. Em vagas de Customer Success, pese atendimento ao cliente, atendimento consultivo, CRM e experiência em empresa de software. BÔNUS SAÚDE: se a empresa for do setor de saúde (software para clínicas ou hospitais, planos de saúde, telemedicina, equipamentos ou serviços médicos), a graduação em Enfermagem é um diferencial: some ${cfg.bonusSaude ?? 0} pontos (máximo 100), diga isso na justificativa e use esse argumento na candidatura. Fora da saúde, a formação em Enfermagem não soma nem tira pontos
  "justificativa": "uma linha",
  "contrato": "CLT|PJ|não informado",
  "modalidade": "Remoto|Híbrido|Presencial|não informado",
