@@ -1,7 +1,7 @@
 name: Radar de vagas
 on:
   schedule:
-    - cron: "0 12 * * *"   # 09:00 no horário de Brasília (o GitHub usa UTC e pode atrasar alguns minutos)
+    - cron: "17 11 * * *"  # 08:17 no horário de Brasília, para o site estar pronto às 9h (o GitHub usa UTC e costuma atrasar, mais ainda nas horas cheias)
   workflow_dispatch:        # permite rodar na hora pelo botão "Run workflow"
 permissions:
   contents: read

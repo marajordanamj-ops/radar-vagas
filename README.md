@@ -1,6 +1,6 @@
 # Radar de vagas — site no GitHub
 
-Todo dia às 9h (horário de Brasília) o GitHub busca vagas de SDR, BDR e Pré-vendas, pede a avaliação ao Gemini e publica o resultado em um site. Nada é enviado nem candidatado: você revisa e você se candidata.
+Todo dia por volta das 8h17 (horário de Brasília), para estar pronto às 9h, o GitHub busca vagas de SDR, BDR e Pré-vendas, pede a avaliação ao Gemini e publica o resultado em um site. Nada é enviado nem candidatado: você revisa e você se candidata.
 
 ## Como colocar no ar (uma vez só)
 
@@ -23,7 +23,7 @@ Todo dia às 9h (horário de Brasília) o GitHub busca vagas de SDR, BDR e Pré-
 - **Vai para o Google (Gemini):** o currículo sem nome, telefone e e-mail, e o texto de cada vaga. No nível gratuito, o Google pode usar esse conteúdo para melhorar os produtos dele.
 
 ## Ajustes
-- Horário: `.github/workflows/radar.yml`, linha `cron` (está em UTC: 12 = 9h de Brasília).
+- Horário: `.github/workflows/radar.yml`, linha `cron` (está em UTC: 11:17 = 8h17 de Brasília).
 - Filtros, termos de busca e quadros de vagas: `config.json`.
 - Atualizar o currículo: edite o segredo `CURRICULO_JSON`.
 - `publicarCurriculos: true` em `config.json` passa a gerar um .docx por vaga, público, com seu nome e sem telefone e e-mail.

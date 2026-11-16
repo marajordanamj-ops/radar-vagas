@@ -100,9 +100,18 @@ ${aprov.length ? aprov.map(ficha).join("\n") : '<p class="sub">Nenhuma vaga pass
 const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Radar de vagas — ${br(falha ? hoje : r.data)}</title><style>${css}</style></head><body><main>
 <h1>Radar de vagas</h1>
-<p class="sub">${falha ? `Painel gerado em ${br(hoje)}` : `Rodada de ${br(r.data)} às ${esc(r.hora)}`} · SDR, BDR e Pré-vendas · júnior · remoto · Brasil. Atualizado todo dia às 9h. Nada é enviado: você revisa e você se candidata.</p>
+<p class="sub">${falha ? `Painel gerado em ${br(hoje)}` : `Rodada de ${br(r.data)} às ${esc(r.hora)}`} · SDR, BDR e Pré-vendas · júnior · remoto · Brasil. Atualizado todo dia antes das 9h. Nada é enviado: você revisa e você se candidata.</p>
 ${corpo}
 </main><script>
+(function(){ // aviso quando a página aberta é de um dia anterior (a rodada de hoje ainda não aconteceu)
+  var rodada=${JSON.stringify(falha || !r ? "" : r.data)}; if(!rodada) return;
+  var hoje=new Date().toLocaleDateString("sv-SE",{timeZone:"America/Sao_Paulo"});
+  if(hoje===rodada) return;
+  var f=function(d){return d.split("-").reverse().join("/")};
+  var d=document.createElement("div"); d.className="falha";
+  d.innerHTML="<b>A rodada de hoje ("+f(hoje)+") ainda não aconteceu.</b><br>O que aparece abaixo é da rodada de "+f(rodada)+": são dados antigos. A rodada automática começa por volta das 8h15 e pode atrasar; se passar das 10h, veja a aba Actions do repositório.";
+  var m=document.querySelector("main"); m.insertBefore(d,m.children[2]||null);
+})();
 document.querySelectorAll(".copiar").forEach(function(b){b.addEventListener("click",function(){
   var t=Array.from(document.getElementById(b.dataset.alvo).querySelectorAll("p")).map(function(p){return p.textContent}).join("\\n\\n");
   function ok(){b.textContent="Copiado";setTimeout(function(){b.textContent="Copiar"},1500)}
