@@ -1,0 +1,15 @@
+name: Testar fontes de vagas
+on:
+  workflow_dispatch:   # só roda quando acionado à mão; não usa o Gemini e não publica nada
+permissions:
+  contents: read
+jobs:
+  testar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/testar_fontes.mjs
