@@ -106,10 +106,10 @@ for (const termo of s.remotar?.termos ?? []) {
       const tem = (re) => tags.some((t) => re.test(t));
       const motivoPre = tem(/inglês|espanhol/i) ? "Exige outro idioma (etiqueta do Remotar)."
         : tem(/internacional/i) ? "Vaga internacional (etiqueta do Remotar)."
-        : tem(/híbrida|presencial/i) || (j.type && j.type !== "remote") ? "Não é 100% remota (etiqueta do Remotar)."
+        : (tem(/híbrida|presencial/i) || (j.type && j.type !== "remote")) && !ehLocal({ local: [j.city, j.state].join(" ") }) ? "Não é 100% remota (etiqueta do Remotar)."
         : tem(/sênior|pleno/i) && !tem(/júnior/i) ? "Nível pleno ou sênior (etiqueta do Remotar)." : "";
       if (registrar({ fonte: "Remotar", empresa: j.company?.name || j.companyDisplayName || "empresa não identificada", titulo: j.title, url: j.externalLink || `https://remotar.com.br/job/${j.id}`,
-        publicadoEm: j.createdAt, local: "Remoto", modalidade: "remote", descricao: limpar(j.description), motivoPre })) f.naJanela++;
+        publicadoEm: j.createdAt, local: [j.city, j.state].filter(Boolean).join(" - ") || "Remoto", modalidade: j.type || "remote", descricao: limpar(j.description), motivoPre })) f.naJanela++;
     }
   });
 }
