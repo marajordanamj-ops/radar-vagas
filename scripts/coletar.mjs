@@ -21,11 +21,13 @@ async function baixar(url, tipo = "json") {
   return tipo === "json" ? r.json() : r.text();
 }
 const preDescartadas = [];
+const reLocal = cfg.local?.filtroTitulo ? new RegExp(cfg.local.filtroTitulo, "i") : reTit;
+const ehLocal = (v) => cfg.local?.cidade && new RegExp(cfg.local.cidade.normalize("NFD").replace(/[\u0300-\u036f]/g, ""), "i").test(String(v.local || "").normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
 function registrar(v) {
-  if (!reTit.test(v.titulo) || reExc.test(v.titulo)) return false;
+  if (!(v.buscaLocal ? reLocal : reTit).test(v.titulo) || reExc.test(v.titulo)) return false;
   if (!v.motivoPre && v.fonte !== "Gupy" && v.fonte !== "Remotar") {
     const onde = `${v.local || ""} ${v.modalidade || ""}`;
-    if (/h[ií]brid|hybrid|presencial|on-?site/i.test(onde) && !/remot/i.test(onde)) v.motivoPre = "Não é 100% remota (informado pelo quadro da empresa).";
+    if (/h[ií]brid|hybrid|presencial|on-?site/i.test(onde) && !/remot/i.test(onde) && !ehLocal(v)) v.motivoPre = "Não é 100% remota (informado pelo quadro da empresa).";
   }
   if (v.motivoPre) {
     const t0 = new Date(v.publicadoEm).getTime();
@@ -50,6 +52,20 @@ function andar(o, achar) {
 }
 
 const s = cfg.fontes;
+if (cfg.local?.cidade) {
+  const enc = encodeURIComponent;
+  const url = `https://portal.gupy.io/job-search/state=${enc(cfg.local.estado)}&city%5B%5D=${enc(cfg.local.cidade)}&sortBy=publishedDate`;
+  await fonte(`gupy:${cfg.local.cidade} (presencial/híbrido)`, url, async (f) => {
+    const html = await baixar(url, "html");
+    const m = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);
+    if (!m) throw new Error("__NEXT_DATA__ não encontrado (a página mudou?)");
+    andar(JSON.parse(m[1]), (j) => {
+      f.total++;
+      if (registrar({ fonte: "Gupy", buscaLocal: true, empresa: j.careerPageName || j.companyName || "?", titulo: j.name || j.title, url: j.jobUrl || j.url, publicadoEm: j.publishedDate,
+        local: [j.city, j.state].filter(Boolean).join(" - ") || cfg.local.cidade, modalidade: j.workplaceType || "", tipo: j.type || "" })) f.naJanela++;
+    });
+  });
+}
 for (const termo of s.gupy?.termos ?? []) {
   const url = `https://portal.gupy.io/job-search/term=${encodeURIComponent(termo)}${s.gupy.apenasRemoto ? "&workplaceTypes[]=remote" : ""}&sortBy=publishedDate`;
   await fonte(`gupy:${termo}`, url, async (f) => {

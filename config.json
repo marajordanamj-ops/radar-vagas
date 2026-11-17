@@ -7,7 +7,7 @@
       "Customer Success"
     ],
     "senioridade": "júnior",
-    "modalidade": "remoto",
+    "modalidade": "remoto (qualquer lugar do Brasil) ou presencial/híbrido em Mossoró – RN",
     "pais": "Brasil",
     "idiomas": "não incluir no currículo",
     "formacao": "Bacharelado em Enfermagem (completo)",
@@ -18,7 +18,7 @@
   "notaMinima": 70,
   "horarioRodada": "09:00",
   "filtroTitulo": "\\b(sdr|bdr)\\b|pr[eé][- ]?vendas?|sales development|business development rep|inside sales|prospec|customer success|sucesso d[oe] cliente|onboarding|vendas internas",
-  "excluirTitulo": "est[aá]gi|aprendiz|s[eê]nior|\\bsr\\b|pleno|\\bpl\\b|coordenad|gerente|head|l[ií]der|arquitet|engenheir",
+  "excluirTitulo": "est[aá]gi|aprendiz|s[eê]nior|\\bsr\\b|pleno|\\bpl\\b|coordenad|gerente|head|l[ií]der|arquitet|engenheir|supervis|banco de talentos",
   "fontes": {
     "gupy": {
       "termos": [
@@ -73,5 +73,10 @@
     "url": "https://kacnhwurscbpsuewidic.supabase.co",
     "chavePublica": "sb_publishable_6IXNI_xiw4vIEO9OVTNlXA_mUP3-QNi"
   },
-  "bonusSaude": 8
+  "bonusSaude": 8,
+  "local": {
+    "cidade": "Mossoró",
+    "estado": "Rio Grande do Norte",
+    "filtroTitulo": "\\b(sdr|bdr)\\b|pr[eé][- ]?vendas?|inside sales|vend(a|as|edor|edora)|comercial|consultor|capta[cç][aã]o|prospec|atendimento|relacionamento|televendas|telemarketing|\\bsac\\b|sucesso d[oe] cliente|customer success|representante|promotor"
+  }
 }

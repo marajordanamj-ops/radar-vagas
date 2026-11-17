@@ -38,7 +38,7 @@ function ficha(v, n) {
     <div class="tit">
       <h3>${esc(v.cargo)}</h3>
       <p class="emp">${esc(v.empresa)}</p>
-      <p class="tags"><span>${esc(v.modalidade)}</span><span>${esc(v.contrato)}</span><span>${esc(v.fonte)}</span><span>${esc(idade(v))}</span>${v.abaixoDoCorte ? '<span class="alerta">abaixo do corte de 70</span>' : ""}</p>
+      <p class="tags"><span${/presencial|h[ií]brid/i.test(v.modalidade || "") ? ' class="alerta"' : ""}>${esc(v.modalidade)}</span><span>${esc(v.contrato)}</span><span>${esc(v.fonte)}</span><span>${esc(idade(v))}</span>${v.abaixoDoCorte ? '<span class="alerta">abaixo do corte de 70</span>' : ""}</p>
     </div>
     <div class="acoes-vaga"><a class="btn" href="${esc(v.link)}" target="_blank" rel="noopener">Abrir vaga ↗</a><button class="sec ja" data-i="${n}" hidden>Já me candidatei</button></div>
   </header>
@@ -124,7 +124,7 @@ dialog .acoes{display:flex;gap:8px;justify-content:flex-end;align-items:center;m
 const aprov = r?.vagas ?? [], desc = r?.descartadas ?? [], fontes = r?.fontes ?? [];
 const naJanela = aprov.filter((v) => !v.foraDaJanela && !v.abaixoDoCorte).length;
 const vagasJs = aprov.map((v) => ({ empresa: v.empresa, cargo: v.cargo, link: v.link, descricao: v.descricao || "", candidatura: v.candidatura ?? [], atencao: v.atencao ?? [] }));
-const perfil = "SDR, BDR, Pré-vendas e Customer Success · júnior · remoto · Brasil";
+const perfil = `SDR, BDR, Pré-vendas e Customer Success · júnior · remoto no Brasil${cfg.local?.cidade ? ` ou presencial/híbrido em ${cfg.local.cidade}` : ""}`;
 const quando = falha ? (r ? `Última rodada concluída: ${br(r.data)} às ${esc(r.hora)} (dados antigos)` : "Nenhuma rodada concluída") : `Rodada de ${br(r.data)} às ${esc(r.hora)}`;
 const falhaHtml = falha ? `<div class="falha"><b>A rodada de ${br(hoje)} falhou.</b><br>${esc(falha)}<br>Nenhum resultado de hoje está disponível.${r ? " O que aparece abaixo é da última rodada concluída: são dados antigos." : ""}</div>` : "";
 
