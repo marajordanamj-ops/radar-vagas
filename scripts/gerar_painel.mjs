@@ -337,6 +337,15 @@ async function carregarMinhas() {
   if (error) { lista.innerHTML = '<div class="vazio">Não consegui carregar suas candidaturas: ' + escH(error.message) + "</div>"; return; }
   minhasCand = data;
   pintarInicio(data);
+  const nrm = (t) => String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  for (const art of $$(".vaga")) {
+    const v = VAGAS[Number(art.dataset.i)]; if (!v) continue;
+    const ja = data.some((c) => c.link === v.link || (nrm(c.empresa).includes(nrm(v.empresa).split(" ")[0]) && nrm(c.cargo) === nrm(v.cargo)));
+    const b = $(".ja", art); if (b) b.hidden = ja;
+    let tag = $(".tag-ja", art);
+    if (ja && !tag) { tag = document.createElement("span"); tag.className = "alerta tag-ja"; tag.textContent = "você já se candidatou"; $(".tags", art)?.appendChild(tag); }
+    if (!ja && tag) tag.remove();
+  }
   const pend = data.filter((c) => c.situacao !== "Encerrada").reduce((n, c) => n + c.passos.filter((p) => !p.feito).length, 0);
   $("#nav-pend").textContent = pend || "";
   $("#pendentes").textContent = pend ? pend + (pend === 1 ? " passo a concluir" : " passos a concluir") : "";
