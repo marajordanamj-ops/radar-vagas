@@ -18,7 +18,7 @@
   "notaMinima": 70,
   "horarioRodada": [
     "09:00",
-    "14:00"
+    "15:00"
   ],
   "filtroTitulo": "\\b(sdr|bdr)\\b|pr[eé][- ]?vendas?|sales development|business development rep|inside sales|prospec|customer success|sucesso d[oe] cliente|onboarding|vendas internas",
   "excluirTitulo": "est[aá]gi|aprendiz|s[eê]nior|\\bsr\\b|pleno|\\bpl\\b|coordenad|gerente|head|l[ií]der|arquitet|engenheir|supervis|banco de talentos|diret|director|vice|\\bvp\\b",

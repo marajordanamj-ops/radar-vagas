@@ -196,7 +196,7 @@ const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><met
     <a href="#descartadas" data-v="desc">Descartadas <b>${desc.length || ""}</b></a>
     <a href="#fontes" data-v="fontes">Fontes <b>${fontes.length ? `${fontes.filter((f) => f.ok).length}/${fontes.length}` : ""}</b></a>
   </nav>
-  <div class="fim"><div class="conta" id="conta"></div><p>Atualizado todo dia às 9h e às 14h. Nada é enviado: você revisa e você se candidata.</p></div>
+  <div class="fim"><div class="conta" id="conta"></div><p>Atualizado todo dia às 9h e às 15h. Nada é enviado: você revisa e você se candidata.</p></div>
 </aside>
 <main>
 <div id="antigo"></div>

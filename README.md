@@ -1,6 +1,6 @@
 # Radar de vagas — site no GitHub
 
-Todo dia, às 9h e às 14h (horário de Brasília), o GitHub busca vagas de SDR, BDR, Pré-vendas e Customer Success (remotas no Brasil) e vagas comerciais e de atendimento presenciais ou híbridas em Mossoró, pede a avaliação ao Gemini e publica o resultado em um site. Nada é enviado nem candidatado: você revisa e você se candidata.
+Todo dia, às 9h e às 15h (horário de Brasília), o GitHub busca vagas de SDR, BDR, Pré-vendas e Customer Success (remotas no Brasil) e vagas comerciais e de atendimento presenciais ou híbridas em Mossoró, pede a avaliação ao Gemini e publica o resultado em um site. Nada é enviado nem candidatado: você revisa e você se candidata.
 
 ## Como colocar no ar (uma vez só)
 
@@ -23,7 +23,7 @@ Todo dia, às 9h e às 14h (horário de Brasília), o GitHub busca vagas de SDR,
 - **Vai para o Google (Gemini):** o currículo sem nome, telefone e e-mail, e o texto de cada vaga. No nível gratuito, o Google pode usar esse conteúdo para melhorar os produtos dele.
 
 ## Ajustes
-- Horários: `.github/workflows/radar.yml`, linhas `cron` (em UTC: 11:17 = 8h17 e 16:17 = 13h17 de Brasília, para o site estar pronto às 9h e às 14h). A rodada da tarde reaproveita as avaliações da manhã e só chama o Gemini para vagas novas.
+- Horários: `.github/workflows/radar.yml`, linhas `cron` (em UTC: 11:17 = 8h17 e 17:17 = 14h17 de Brasília, para o site estar pronto às 9h e às 15h). A rodada da tarde reaproveita as avaliações da manhã e só chama o Gemini para vagas novas.
 - Filtros, termos de busca e quadros de vagas: `config.json`. A cidade das vagas presenciais fica em `local` (cidade, estado e cargos aceitos).
 - Atualizar o currículo: edite o segredo `CURRICULO_JSON`.
 - `publicarCurriculos: true` em `config.json` passa a gerar um .docx por vaga, público, com seu nome e sem telefone e e-mail.
