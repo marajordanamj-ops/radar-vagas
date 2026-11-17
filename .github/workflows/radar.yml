@@ -1,7 +1,8 @@
 name: Radar de vagas
 on:
   schedule:
-    - cron: "17 11 * * *"  # 08:17 no horário de Brasília, para o site estar pronto às 9h (o GitHub usa UTC e costuma atrasar, mais ainda nas horas cheias)
+    - cron: "17 11 * * *"  # 08:17 em Brasília, para o site estar pronto às 9h (o GitHub usa UTC e costuma atrasar, mais ainda nas horas cheias)
+    - cron: "17 16 * * *"  # 13:17 em Brasília, para o site estar pronto às 14h
   workflow_dispatch:        # permite rodar na hora pelo botão "Run workflow"
 permissions:
   contents: read
@@ -39,8 +40,9 @@ jobs:
       - name: Painel de falha (não mostrar dados velhos)
         if: steps.rodada.outcome == 'failure'
         run: |
-          rm -f dados/rodada.json
-          node scripts/gerar_painel.mjs --falha "A rodada automática falhou. Abra a aba Actions do repositório e veja o registro da execução de hoje."
+          # mantém no ar a última rodada concluída (por exemplo, a das 9h se a das 14h falhar), marcada como antiga
+          curl -sf "https://marajordanamj-ops.github.io/radar-vagas/rodada.json" -o dados/rodada.json || rm -f dados/rodada.json
+          node scripts/gerar_painel.mjs --falha "A rodada automática das $(date +%H:%M) falhou. Abra a aba Actions do repositório e veja o registro."
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

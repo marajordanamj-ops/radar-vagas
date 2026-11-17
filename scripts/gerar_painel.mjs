@@ -126,7 +126,7 @@ const naJanela = aprov.filter((v) => !v.foraDaJanela && !v.abaixoDoCorte).length
 const vagasJs = aprov.map((v) => ({ empresa: v.empresa, cargo: v.cargo, link: v.link, descricao: v.descricao || "", candidatura: v.candidatura ?? [], atencao: v.atencao ?? [] }));
 const perfil = `SDR, BDR, Pré-vendas e Customer Success · júnior · remoto no Brasil${cfg.local?.cidade ? ` ou presencial/híbrido em ${cfg.local.cidade}` : ""}`;
 const quando = falha ? (r ? `Última rodada concluída: ${br(r.data)} às ${esc(r.hora)} (dados antigos)` : "Nenhuma rodada concluída") : `Rodada de ${br(r.data)} às ${esc(r.hora)}`;
-const falhaHtml = falha ? `<div class="falha"><b>A rodada de ${br(hoje)} falhou.</b><br>${esc(falha)}<br>Nenhum resultado de hoje está disponível.${r ? " O que aparece abaixo é da última rodada concluída: são dados antigos." : ""}</div>` : "";
+const falhaHtml = falha ? `<div class="falha"><b>A atualização mais recente falhou.</b><br>${esc(falha)}<br>${r ? `O que aparece abaixo é da última rodada concluída (${br(r.data)} às ${esc(r.hora)}).` : "Nenhum resultado disponível."}</div>` : "";
 
 const top = aprov[0];
 const estado = falha ? "Rodada de hoje com falha" : r && r.data !== hoje ? "Dados de outro dia" : "Rodada de hoje concluída";
@@ -196,7 +196,7 @@ const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><met
     <a href="#descartadas" data-v="desc">Descartadas <b>${desc.length || ""}</b></a>
     <a href="#fontes" data-v="fontes">Fontes <b>${fontes.length ? `${fontes.filter((f) => f.ok).length}/${fontes.length}` : ""}</b></a>
   </nav>
-  <div class="fim"><div class="conta" id="conta"></div><p>Atualizado todo dia antes das 9h. Nada é enviado: você revisa e você se candidata.</p></div>
+  <div class="fim"><div class="conta" id="conta"></div><p>Atualizado todo dia às 9h e às 14h. Nada é enviado: você revisa e você se candidata.</p></div>
 </aside>
 <main>
 <div id="antigo"></div>
@@ -223,7 +223,7 @@ const $ = (s, p = document) => p.querySelector(s), $$ = (s, p = document) => [..
   const hoje = new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
   if (hoje === RODADA) return;
   const f = (d) => d.split("-").reverse().join("/");
-  $("#antigo").innerHTML = '<div class="falha"><b>A rodada de hoje (' + f(hoje) + ') ainda não aconteceu.</b><br>O que aparece abaixo é da rodada de ' + f(RODADA) + ': são dados antigos. A rodada automática começa por volta das 8h15 e pode atrasar; se passar das 10h, veja a aba Actions do repositório.</div>';
+  $("#antigo").innerHTML = '<div class="falha"><b>A rodada de hoje (' + f(hoje) + ') ainda não aconteceu.</b><br>O que aparece abaixo é da rodada de ' + f(RODADA) + ': são dados antigos. A primeira rodada do dia começa por volta das 8h15 e pode atrasar; se passar das 10h, veja a aba Actions do repositório.</div>';
 })();
 
 // navegação pelo menu lateral
@@ -410,4 +410,5 @@ if (SUP.url && SUP.chave) {
 </script></body></html>`;
 fs.mkdirSync(path.join(raiz, "site"), { recursive: true });
 fs.writeFileSync(path.join(raiz, "site/index.html"), html);
+if (r) fs.writeFileSync(path.join(raiz, "site/rodada.json"), JSON.stringify(r)); // a próxima rodada reaproveita as avaliações
 console.log("site/index.html gerado" + (falha ? " (com aviso de falha)" : ""));

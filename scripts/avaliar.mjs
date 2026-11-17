@@ -118,6 +118,16 @@ Devolva este JSON:
 modelos = await escolherModelos();
 console.log("modelos Gemini:", modelos.join(", "));
 
+// avaliações da rodada anterior (publicadas no site): a mesma vaga não é avaliada duas vezes
+let cache = {};
+try {
+  const r = await fetch(`${cfg.siteUrl}/rodada.json?t=${Date.now()}`, { signal: AbortSignal.timeout(20000) });
+  if (r.ok) cache = (await r.json()).cache ?? {};
+} catch { /* primeira rodada ou site fora do ar: avalia tudo */ }
+console.log("avaliações reaproveitáveis da rodada anterior:", Object.keys(cache).length);
+const novoCache = {};
+let reaproveitadas = 0;
+
 const hoje = new Date();
 const rodada = {
   data: hoje.toLocaleDateString("sv-SE"), hora: hoje.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }), status: "ok", avisos: [],
@@ -139,9 +149,17 @@ for (const [i, v] of fila.entries()) {
   try {
     const d = await descricao(v);
     if (d.fechada) { rodada.descartadas.push({ ...basico, motivo: `Vaga fechada: ${d.fechada}.` }); continue; }
+    const antes = cache[v.url];
+    if (antes) {
+      novoCache[v.url] = antes; reaproveitadas++;
+      if (antes.descartar) rodada.descartadas.push({ ...basico, motivo: antes.motivo });
+      else avaliadas.push({ ...antes.vaga, id: `v${i + 1}`, publicadoEm: v.publicadoEm, arquivoCurriculo: `curriculos/curriculo_v${i + 1}.docx` });
+      console.log(`reaproveitada: ${v.empresa} - ${v.titulo}`);
+      continue;
+    }
     if (i) await dormir(7000); // limite de requisições por minuto do nível gratuito
     const a = await gemini(`${instrucoes}\n\nVAGA\nEmpresa: ${v.empresa}\nCargo: ${v.titulo}\nLocal: ${v.local || "não informado"} | Modalidade informada: ${v.modalidade || "não informada"}\nDescrição:\n${d.texto}`);
-    if (a.descartar) { rodada.descartadas.push({ ...basico, motivo: a.motivoDescarte || "Descartada na avaliação." }); continue; }
+    if (a.descartar) { const motivo = a.motivoDescarte || "Descartada na avaliação."; novoCache[v.url] = { descartar: true, motivo }; rodada.descartadas.push({ ...basico, motivo }); continue; }
     const id = `v${i + 1}`;
     avaliadas.push({
       id, empresa: v.empresa, cargo: v.titulo, link: v.url, fonte: v.fonte, publicadoEm: v.publicadoEm, horaConfirmada: true, foraDaJanela: false,
@@ -150,6 +168,7 @@ for (const [i, v] of fila.entries()) {
       curriculo: a.curriculo, arquivoCurriculo: `curriculos/curriculo_${id}.docx`,
       descricao: String(d.texto || "").slice(0, 6000),
     });
+    { const { id: _id, ...semId } = avaliadas[avaliadas.length - 1]; novoCache[v.url] = { vaga: semId }; }
     console.log(`avaliada: ${v.empresa} - ${v.titulo} -> ${a.nota}`);
   } catch (e) {
     erros++;
@@ -158,6 +177,8 @@ for (const [i, v] of fila.entries()) {
     console.log(`ERRO em ${v.empresa} - ${v.titulo}: ${e.message}`);
   }
 }
+rodada.cache = novoCache;
+if (reaproveitadas) console.log(`${reaproveitadas} avaliação(ões) reaproveitada(s) sem chamar o Gemini.`);
 if (erros) rodada.avisos.push(`${erros} vaga(s) nova(s) não foram avaliadas porque o Gemini não respondeu. Elas estão na lista de descartadas, com o link, para você abrir.`);
 
 avaliadas.sort((a, b) => b.nota - a.nota);
