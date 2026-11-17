@@ -132,7 +132,7 @@ const hoje = new Date();
 const rodada = {
   data: hoje.toLocaleDateString("sv-SE"), hora: hoje.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }), status: "ok", avisos: [],
   fontes: brutas.fontes.map((f) => ({ nome: f.nome, ok: f.ok, detalhe: f.ok ? `Respondeu. ${f.total} vaga(s) lidas, ${f.naJanela} na janela de ${brutas.janelaHoras}h.` : `Não respondeu: ${f.erro}` })),
-  vagas: [], descartadas: [],
+  vagas: [], naoAvaliadas: [], descartadas: [],
 };
 for (const d of brutas.preDescartadas ?? []) rodada.descartadas.push(d);
 for (const v of brutas.semDataConfirmada ?? []) rodada.descartadas.push({ empresa: v.empresa, cargo: v.titulo, fonte: v.fonte, data: "não confirmada", motivo: "Data de publicação não confirmada." });
@@ -145,7 +145,8 @@ const avaliadas = [];
 let erros = 0, geminiFora = false;
 for (const [i, v] of fila.entries()) {
   const basico = { empresa: v.empresa, cargo: v.titulo, fonte: v.fonte, data: fmt(v.publicadoEm), link: v.url };
-  if (geminiFora) { erros++; rodada.descartadas.push({ ...basico, naoAvaliada: true, motivo: "Não foi avaliada: o Gemini não estava respondendo nesta rodada. Abra a vaga e veja você mesma." }); continue; }
+  const semNota = { empresa: v.empresa, cargo: v.titulo, link: v.url, fonte: v.fonte, publicadoEm: v.publicadoEm, local: v.local || "", modalidade: v.modalidade || "" };
+  if (geminiFora) { erros++; rodada.naoAvaliadas.push(semNota); continue; }
   try {
     const d = await descricao(v);
     if (d.fechada) { rodada.descartadas.push({ ...basico, motivo: `Vaga fechada: ${d.fechada}.` }); continue; }
@@ -173,13 +174,13 @@ for (const [i, v] of fila.entries()) {
   } catch (e) {
     erros++;
     if (/^Gemini não respondeu/.test(e.message)) geminiFora = true; // não insiste nas próximas vagas
-    rodada.descartadas.push({ ...basico, naoAvaliada: true, motivo: `Não foi avaliada: ${e.message} Abra a vaga e veja você mesma.` });
+    rodada.naoAvaliadas.push(semNota);
     console.log(`ERRO em ${v.empresa} - ${v.titulo}: ${e.message}`);
   }
 }
 rodada.cache = novoCache;
 if (reaproveitadas) console.log(`${reaproveitadas} avaliação(ões) reaproveitada(s) sem chamar o Gemini.`);
-if (erros) rodada.avisos.push(`${erros} vaga(s) nova(s) não foram avaliadas porque o Gemini não respondeu. Elas estão na lista de descartadas, com o link, para você abrir.`);
+if (erros) rodada.avisos.push(`${erros} vaga(s) nova(s) não foram avaliadas porque o Gemini não respondeu. Elas aparecem abaixo como "sem avaliação"; a próxima rodada tenta avaliar de novo.`);
 
 avaliadas.sort((a, b) => b.nota - a.nota);
 const aprovadas = avaliadas.filter((v) => v.nota >= cfg.notaMinima);

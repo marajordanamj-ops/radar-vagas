@@ -85,7 +85,7 @@ h2{font-size:16px;margin:26px 0 10px}h3{font-size:17px;margin:0;line-height:1.3}
 .falha{background:#fef2f2;border:1px solid #fecaca;border-left:5px solid var(--verm);border-radius:10px;padding:14px 16px;margin:0 0 18px;color:#7f1d1d}.falha b{font-size:16px}
 .vaga{background:#fff;border:1px solid var(--linha);border-radius:14px;padding:20px 22px;margin:14px 0}
 .vaga header{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}.tit{flex:1;min-width:230px}.emp{margin:2px 0 8px;color:var(--suave);font-weight:500}
-.nota{width:62px;height:62px;border-radius:50%;display:grid;place-content:center;text-align:center;border:3px solid var(--verde);color:var(--verde)}.media .nota{border-color:var(--ambar);color:var(--ambar)}.baixa .nota{border-color:var(--verm);color:var(--verm)}
+.nota{width:62px;height:62px;border-radius:50%;display:grid;place-content:center;text-align:center;border:3px solid var(--verde);color:var(--verde)}.sem .nota{border-color:#d1d5db;color:#6b7280}.media .nota{border-color:var(--ambar);color:var(--ambar)}.baixa .nota{border-color:var(--verm);color:var(--verm)}
 .nota b{font-size:22px;line-height:1}.nota span{font-size:10px;color:var(--suave)}
 .tags,.chips{display:flex;flex-wrap:wrap;gap:6px;margin:0}.tags span,.chips span{background:#f3f4f6;color:#374151;border-radius:6px;padding:2px 9px;font-size:12.5px}
 .tags .alerta,.chips.falta span{background:#fff7ed;color:#9a3412}
@@ -123,7 +123,25 @@ dialog .acoes{display:flex;gap:8px;justify-content:flex-end;align-items:center;m
 
 const aprov = r?.vagas ?? [], desc = r?.descartadas ?? [], fontes = r?.fontes ?? [];
 const naJanela = aprov.filter((v) => !v.foraDaJanela && !v.abaixoDoCorte).length;
-const vagasJs = aprov.map((v) => ({ empresa: v.empresa, cargo: v.cargo, link: v.link, descricao: v.descricao || "", candidatura: v.candidatura ?? [], atencao: v.atencao ?? [] }));
+const semNota = r?.naoAvaliadas ?? [];
+const vagasJs = [...aprov, ...semNota].map((v) => ({ empresa: v.empresa, cargo: v.cargo, link: v.link, descricao: v.descricao || "", candidatura: v.candidatura ?? [], atencao: v.atencao ?? [] }));
+function fichaSemNota(v0, k) {
+  const n = aprov.length + k;
+  const traduz = { remote: "Remoto", hybrid: "Híbrido", "on-site": "Presencial", onsite: "Presencial" };
+  const v = { ...v0, modalidade: traduz[String(v0.modalidade || "").toLowerCase()] ?? v0.modalidade };
+  return `<article class="vaga sem" data-i="${n}">
+  <header>
+    <div class="nota"><b>?</b><span>sem nota</span></div>
+    <div class="tit">
+      <h3>${esc(v.cargo)}</h3>
+      <p class="emp">${esc(v.empresa)}</p>
+      <p class="tags"><span class="alerta">sem avaliação</span>${v.modalidade ? `<span${/presencial|h[ií]brid|on.?site/i.test(v.modalidade) ? ' class="alerta"' : ""}>${esc(v.modalidade)}</span>` : ""}${v.local ? `<span>${esc(v.local)}</span>` : ""}<span>${esc(v.fonte)}</span><span>${esc(idade(v))}</span></p>
+    </div>
+    <div class="acoes-vaga"><a class="btn" href="${esc(v.link)}" target="_blank" rel="noopener">Abrir vaga ↗</a><button class="sec ja" data-i="${n}" hidden>Já me candidatei</button></div>
+  </header>
+  <p class="dica">O Gemini não respondeu nesta rodada, então esta vaga ainda não tem nota nem candidatura. Ela passou pelos filtros de cargo, data e modalidade. A próxima rodada tenta avaliar de novo.</p>
+</article>`;
+}
 const perfil = `SDR, BDR, Pré-vendas e Customer Success · júnior · remoto no Brasil${cfg.local?.cidade ? ` ou presencial/híbrido em ${cfg.local.cidade}` : ""}`;
 const quando = falha ? (r ? `Última rodada concluída: ${br(r.data)} às ${esc(r.hora)} (dados antigos)` : "Nenhuma rodada concluída") : `Rodada de ${br(r.data)} às ${esc(r.hora)}`;
 const falhaHtml = falha ? `<div class="falha"><b>A atualização mais recente falhou.</b><br>${esc(falha)}<br>${r ? `O que aparece abaixo é da última rodada concluída (${br(r.data)} às ${esc(r.hora)}).` : "Nenhum resultado disponível."}</div>` : "";
@@ -139,7 +157,7 @@ const telaInicio = `<section class="view" id="v-inicio">
   <div class="card link" data-ir="fontes"><b>${fontes.filter((f) => f.ok).length}/${fontes.length}</b><span>fontes responderam</span></div>
 </div>
 <div class="painel" style="margin-bottom:14px"><h2>Destaque do dia</h2>
-${top ? `<div class="destaque ${classe(top.nota)}"><div class="nota"><b>${top.nota}</b><span>de 100</span></div><div class="tit"><h3>${esc(top.cargo)}</h3><p class="emp" style="margin:2px 0 0">${esc(top.empresa)} · ${esc(top.modalidade)} · ${esc(top.contrato)}</p></div><div class="acoes-vaga"><button class="btn" data-ir="vagas">Ver detalhes</button><a class="sec" style="margin:0;text-decoration:none" href="${esc(top.link)}" target="_blank" rel="noopener">Abrir vaga ↗</a></div></div>` : '<div class="vazio">Nenhuma vaga nova passou do corte hoje. O radar volta a buscar amanhã cedo.</div>'}
+${top ? `<div class="destaque ${classe(top.nota)}"><div class="nota"><b>${top.nota}</b><span>de 100</span></div><div class="tit"><h3>${esc(top.cargo)}</h3><p class="emp" style="margin:2px 0 0">${esc(top.empresa)} · ${esc(top.modalidade)} · ${esc(top.contrato)}</p></div><div class="acoes-vaga"><button class="btn" data-ir="vagas">Ver detalhes</button><a class="sec" style="margin:0;text-decoration:none" href="${esc(top.link)}" target="_blank" rel="noopener">Abrir vaga ↗</a></div></div>` : (semNota.length ? `<div class="vazio">${semNota.length} vaga(s) nova(s) ainda sem avaliação, porque o Gemini não respondeu. <button class="sec" data-ir="vagas">Ver vagas</button></div>` : '<div class="vazio">Nenhuma vaga nova passou do corte nesta rodada.</div>')}
 </div>
 <div class="grade">
   <div class="painel"><h2>Próximos passos</h2><div id="ini-passos"><div class="vazio">Entre para ver seus passos.</div></div></div>
@@ -156,7 +174,8 @@ const telaVagas = `<section class="view" id="v-vagas" hidden>
   <div class="card"><b>${fontes.filter((f) => f.ok).length}/${fontes.length}</b><span>fontes responderam</span></div>
 </div>
 ${(r?.avisos ?? []).map((a) => `<div class="aviso">${esc(a)}</div>`).join("")}
-${aprov.length ? aprov.map(ficha).join("\n") : '<div class="vazio">Nenhuma vaga passou do corte nesta rodada.</div>'}
+${aprov.length ? aprov.map(ficha).join("\n") : (semNota.length ? "" : '<div class="vazio">Nenhuma vaga passou do corte nesta rodada.</div>')}
+${semNota.length ? `<h2>Sem avaliação (${semNota.length})</h2>` + semNota.map(fichaSemNota).join("\n") : ""}
 </section>`;
 
 const telaCand = `<section class="view" id="v-cand" hidden>
@@ -191,7 +210,7 @@ const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><met
   <div class="marca"><span class="logo">◎</span>Radar de vagas</div>
   <nav>
     <a href="#inicio" data-v="inicio" class="ativo">Início</a>
-    <a href="#vagas" data-v="vagas">Vagas de hoje <b>${aprov.length || ""}</b></a>
+    <a href="#vagas" data-v="vagas">Vagas de hoje <b>${aprov.length + semNota.length || ""}</b></a>
     <a href="#candidaturas" data-v="cand">Minhas candidaturas <b id="nav-pend"></b></a>
     <a href="#descartadas" data-v="desc">Descartadas <b>${desc.length || ""}</b></a>
     <a href="#fontes" data-v="fontes">Fontes <b>${fontes.length ? `${fontes.filter((f) => f.ok).length}/${fontes.length}` : ""}</b></a>
