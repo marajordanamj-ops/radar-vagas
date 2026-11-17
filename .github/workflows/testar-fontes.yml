@@ -13,3 +13,9 @@ jobs:
         with:
           node-version: 22
       - run: node scripts/testar_fontes.mjs
+      - name: Coleta real com a configuração atual (sem Gemini)
+        env:
+          TZ: America/Sao_Paulo
+        run: |
+          node scripts/coletar.mjs
+          node -e "const b=require('./dados/brutas.json');for(const v of b.vagas)console.log('NA JANELA',v.fonte,'|',v.empresa,'|',v.titulo,'|',v.publicadoEm);for(const d of b.preDescartadas)console.log('PRE-DESCARTE',d.fonte,'|',d.empresa,'|',d.cargo,'|',d.motivo)"

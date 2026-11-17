@@ -17,7 +17,7 @@
   "janelaHoras": 24,
   "notaMinima": 70,
   "horarioRodada": "09:00",
-  "filtroTitulo": "\\b(sdr|bdr)\\b|pr[eé][- ]?vendas?|sales development|business development rep|inside sales|prospec|customer success|sucesso d[oe] cliente",
+  "filtroTitulo": "\\b(sdr|bdr)\\b|pr[eé][- ]?vendas?|sales development|business development rep|inside sales|prospec|customer success|sucesso d[oe] cliente|onboarding|vendas internas",
   "excluirTitulo": "est[aá]gi|aprendiz|s[eê]nior|\\bsr\\b|pleno|\\bpl\\b|coordenad|gerente|head|l[ií]der|arquitet|engenheir",
   "fontes": {
     "gupy": {
@@ -29,20 +29,38 @@
         "sales development",
         "inside sales",
         "customer success",
-        "sucesso do cliente"
+        "sucesso do cliente",
+        "onboarding",
+        "vendas internas"
       ],
       "apenasRemoto": true
     },
     "greenhouse": [
-      "ifoodcarreiras"
+      "ifoodcarreiras",
+      "stone",
+      "rdstation",
+      "hotmartcareersbr"
     ],
     "lever": [
-      "flashapp"
+      "flashapp",
+      "swile"
     ],
     "leverAgregadores": [
       "jobgether"
     ],
-    "ashby": []
+    "ashby": [
+      "doctoralia-brasil"
+    ],
+    "remotar": {
+      "termos": [
+        "sdr",
+        "bdr",
+        "pré-vendas",
+        "inside sales",
+        "customer success",
+        "sucesso do cliente"
+      ]
+    }
   },
   "modeloGemini": [
     "gemini-3.6-flash",

@@ -31,7 +31,8 @@ Todo dia por volta das 8h17 (horário de Brasília), para estar pronto às 9h, o
 ## Limites conhecidos
 - O GitHub desativa execuções agendadas depois de 60 dias sem alteração no repositório; ele avisa por e-mail e basta reativar.
 - As fontes de vagas podem recusar acessos vindos do GitHub. A tabela "Fontes consultadas" do site mostra quais responderam.
-- A Gupy mostra cerca de 12 vagas por termo: a cobertura é parcial.
+- A Gupy mostra cerca de 12 vagas por termo (as mais recentes primeiro): a cobertura é parcial.
+- Fontes: Gupy, Remotar (agregador de vagas remotas), quadros Greenhouse (iFood, Stone, RD Station, Hotmart), Lever (Flash, Swile, Jobgether) e Ashby (Doctoralia). Para testar quadros novos sem gastar o Gemini, edite `scripts/fontes_candidatas.json` e rode "Testar fontes de vagas" na aba Actions.
 - No máximo 12 vagas por dia são avaliadas, para caber no nível gratuito do Gemini.
 
 ## Assistente de candidatura (login com Supabase)

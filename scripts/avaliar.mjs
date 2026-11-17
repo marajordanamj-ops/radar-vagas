@@ -124,6 +124,7 @@ const rodada = {
   fontes: brutas.fontes.map((f) => ({ nome: f.nome, ok: f.ok, detalhe: f.ok ? `Respondeu. ${f.total} vaga(s) lidas, ${f.naJanela} na janela de ${brutas.janelaHoras}h.` : `Não respondeu: ${f.erro}` })),
   vagas: [], descartadas: [],
 };
+for (const d of brutas.preDescartadas ?? []) rodada.descartadas.push(d);
 for (const v of brutas.semDataConfirmada ?? []) rodada.descartadas.push({ empresa: v.empresa, cargo: v.titulo, fonte: v.fonte, data: "não confirmada", motivo: "Data de publicação não confirmada." });
 
 const fila = brutas.vagas.slice(0, cfg.maxVagasPorDia);

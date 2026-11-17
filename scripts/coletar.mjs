@@ -20,8 +20,18 @@ async function baixar(url, tipo = "json") {
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   return tipo === "json" ? r.json() : r.text();
 }
+const preDescartadas = [];
 function registrar(v) {
   if (!reTit.test(v.titulo) || reExc.test(v.titulo)) return false;
+  if (!v.motivoPre && v.fonte !== "Gupy" && v.fonte !== "Remotar") {
+    const onde = `${v.local || ""} ${v.modalidade || ""}`;
+    if (/h[ií]brid|hybrid|presencial|on-?site/i.test(onde) && !/remot/i.test(onde)) v.motivoPre = "Não é 100% remota (informado pelo quadro da empresa).";
+  }
+  if (v.motivoPre) {
+    const t0 = new Date(v.publicadoEm).getTime();
+    if (!Number.isNaN(t0) && t0 >= limite) preDescartadas.push({ empresa: v.empresa, cargo: v.titulo, fonte: v.fonte, data: new Date(t0).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }), link: v.url, motivo: v.motivoPre });
+    return false;
+  }
   const t = v.publicadoEm ? new Date(v.publicadoEm).getTime() : NaN;
   if (Number.isNaN(t)) { semData.push(v); return false; }
   if (t < limite) return false;
@@ -41,7 +51,7 @@ function andar(o, achar) {
 
 const s = cfg.fontes;
 for (const termo of s.gupy?.termos ?? []) {
-  const url = `https://portal.gupy.io/job-search/term=${encodeURIComponent(termo)}${s.gupy.apenasRemoto ? "&workplaceTypes[]=remote" : ""}`;
+  const url = `https://portal.gupy.io/job-search/term=${encodeURIComponent(termo)}${s.gupy.apenasRemoto ? "&workplaceTypes[]=remote" : ""}&sortBy=publishedDate`;
   await fonte(`gupy:${termo}`, url, async (f) => {
     const html = await baixar(url, "html");
     const m = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);
@@ -71,6 +81,22 @@ for (const [lista, agregador] of [[s.lever ?? [], false], [s.leverAgregadores ??
     });
   }
 }
+for (const termo of s.remotar?.termos ?? []) {
+  const url = `https://api.remotar.com.br/jobs?search=${encodeURIComponent(termo)}`;
+  await fonte(`remotar:${termo}`, url, async (f) => {
+    for (const j of (await baixar(url)).data ?? []) {
+      f.total++;
+      const tags = (j.jobTags ?? []).map((x) => String(x.tag?.name || ""));
+      const tem = (re) => tags.some((t) => re.test(t));
+      const motivoPre = tem(/inglês|espanhol/i) ? "Exige outro idioma (etiqueta do Remotar)."
+        : tem(/internacional/i) ? "Vaga internacional (etiqueta do Remotar)."
+        : tem(/híbrida|presencial/i) || (j.type && j.type !== "remote") ? "Não é 100% remota (etiqueta do Remotar)."
+        : tem(/sênior|pleno/i) && !tem(/júnior/i) ? "Nível pleno ou sênior (etiqueta do Remotar)." : "";
+      if (registrar({ fonte: "Remotar", empresa: j.company?.name || j.companyDisplayName || "empresa não identificada", titulo: j.title, url: j.externalLink || `https://remotar.com.br/job/${j.id}`,
+        publicadoEm: j.createdAt, local: "Remoto", modalidade: "remote", descricao: limpar(j.description), motivoPre })) f.naJanela++;
+    }
+  });
+}
 for (const b of s.ashby ?? []) {
   const url = `https://api.ashbyhq.com/posting-api/job-board/${b}`;
   await fonte(`ashby:${b}`, url, async (f) => {
@@ -81,9 +107,15 @@ for (const b of s.ashby ?? []) {
 
 // remove repetidas (mesma URL, ou mesmo título + empresa)
 const vistos = new Set();
-const unicas = vagas.filter((v) => { const k = (v.url || "") + "|" + (v.titulo + v.empresa).toLowerCase(); if (vistos.has(k)) return false; vistos.add(k); return true; });
+const chave = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+const ordemFonte = { Gupy: 0, Greenhouse: 1, Lever: 1, Ashby: 1, Remotar: 2 }; // prefere o link direto da empresa
+vagas.sort((a, b) => (ordemFonte[a.fonte] ?? 3) - (ordemFonte[b.fonte] ?? 3));
+const unicas = vagas.filter((v) => { const k = chave(v.empresa) + "|" + chave(v.titulo); if (vistos.has(k)) return false; vistos.add(k); return true; });
+unicas.sort((a, b) => new Date(b.publicadoEm) - new Date(a.publicadoEm));
+const vistosPre = new Set(unicas.map((v) => chave(v.empresa) + "|" + chave(v.titulo)));
+const preUnicas = preDescartadas.filter((d) => { const k = chave(d.empresa) + "|" + chave(d.cargo); if (vistosPre.has(k)) return false; vistosPre.add(k); return true; });
 fs.mkdirSync(path.join(raiz, "dados"), { recursive: true });
-fs.writeFileSync(path.join(raiz, "dados/brutas.json"), JSON.stringify({ geradoEm: new Date(agora).toISOString(), janelaHoras: cfg.janelaHoras, fontes, vagas: unicas, semDataConfirmada: semData }, null, 2));
+fs.writeFileSync(path.join(raiz, "dados/brutas.json"), JSON.stringify({ geradoEm: new Date(agora).toISOString(), janelaHoras: cfg.janelaHoras, fontes, vagas: unicas, semDataConfirmada: semData, preDescartadas: preUnicas }, null, 2));
 const okN = fontes.filter((f) => f.ok).length;
 console.log(`\n${unicas.length} vaga(s) na janela; ${semData.length} sem data; ${okN}/${fontes.length} fontes responderam.`);
 if (okN === 0) { console.error("Nenhuma fonte respondeu."); process.exit(2); }
