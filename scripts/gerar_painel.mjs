@@ -73,7 +73,7 @@ a{color:var(--cor)}.app{display:grid;grid-template-columns:248px 1fr;min-height:
 .lado{background:linear-gradient(180deg,#5b1030,var(--lado));color:#f3d6e1;padding:22px 14px;display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh}
 .marca{display:flex;align-items:center;gap:10px;color:#fff;font-weight:700;font-size:17px;padding:4px 10px 18px}.logo{width:30px;height:30px;border-radius:9px;background:var(--cor);color:#fff;display:grid;place-items:center;font-size:15px}
 .lado nav{display:flex;flex-direction:column;gap:2px}.lado nav a{display:flex;justify-content:space-between;align-items:center;gap:8px;color:#f3d6e1;text-decoration:none;padding:9px 12px;border-radius:9px;font-weight:500}
-.lado nav a:hover{background:rgba(255,255,255,.06)}.lado nav a.ativo{background:rgba(255,255,255,.12);color:#fff}
+.lado nav a svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none;opacity:.85}.lado nav a span{flex:1}.lado nav a i{font-style:normal}.lado nav a em{display:none}.lado nav a span i+em{display:none}.lado nav a:hover{background:rgba(255,255,255,.06)}.lado nav a.ativo{background:rgba(255,255,255,.12);color:#fff}
 .lado nav b{font-size:12px;font-weight:600;background:rgba(255,255,255,.12);border-radius:999px;padding:1px 8px;min-width:22px;text-align:center}.lado nav b:empty{display:none}#nav-pend{background:var(--cor);color:#fff}
 .lado .fim{margin-top:auto;font-size:13px;padding:0 10px;color:#e7b7c9}.conta{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;font-size:13px;word-break:break-all}
 .conta button{font:inherit;font-size:13px;font-weight:600;border:1px solid rgba(255,255,255,.28);background:transparent;color:#fde7ef;border-radius:8px;padding:7px 12px;cursor:pointer}.conta #entrar{background:var(--cor);border-color:var(--cor);color:#fff}
@@ -119,7 +119,32 @@ dialog .acoes{display:flex;gap:8px;justify-content:flex-end;align-items:center;m
 .painel h2{margin:0 0 10px;font-size:15px}.painel ul{list-style:none;margin:0;padding:0}.painel li{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #f5eef1;font-size:14px}.painel li:last-child{border-bottom:0}
 .painel li small{color:var(--suave);white-space:nowrap}.painel .vazio{padding:14px;font-size:14px}.urgente{color:var(--verm);font-weight:600}
 .destaque{display:flex;gap:16px;align-items:center;flex-wrap:wrap}.destaque .tit{min-width:200px}.destaque .acoes-vaga{flex-direction:row}
-@media(max-width:760px){.grade{grid-template-columns:1fr}.app{grid-template-columns:1fr}.lado{position:static;height:auto;padding:14px}.marca{padding-bottom:8px}.lado nav{flex-direction:row;overflow-x:auto}.lado nav a{white-space:nowrap}.lado .fim{margin-top:8px}.conta{flex-direction:row;align-items:center;margin:0}.lado .fim p{display:none}main{padding:20px 16px 60px}td:nth-child(3),th:nth-child(3){display:none}.ia-form{flex-direction:column;align-items:stretch}}`;
+@media(max-width:760px){
+.app{display:block}
+.lado{position:sticky;top:0;z-index:20;height:auto;flex-direction:row;align-items:center;justify-content:space-between;padding:10px 14px;padding-top:max(10px,env(safe-area-inset-top));box-shadow:0 2px 10px rgba(74,13,38,.25)}
+.marca{padding:0;font-size:16px}.logo{width:28px;height:28px}
+.lado .fim{margin:0;padding:0}.lado .fim p{display:none}.conta{flex-direction:row;align-items:center;gap:8px;margin:0}.conta span{display:none}.conta button{padding:7px 14px;font-size:14px}
+.lado nav{position:fixed;left:0;right:0;bottom:0;z-index:30;flex-direction:row;gap:0;background:#fff;border-top:1px solid var(--linha);box-shadow:0 -4px 16px rgba(74,13,38,.08);padding:4px 4px max(4px,env(safe-area-inset-bottom))}
+.lado nav a{flex:1;flex-direction:column;justify-content:center;gap:2px;padding:6px 2px;border-radius:10px;color:#7b6470;font-size:11px;font-weight:600;position:relative;min-height:54px}
+.lado nav a svg{width:23px;height:23px;opacity:1}.lado nav a span{flex:none}.lado nav a i{display:none}.lado nav a span i+em{display:inline}
+.lado nav a.ativo{background:var(--cor-fraca);color:var(--cor)}.lado nav a:hover{background:none}.lado nav a.ativo:hover{background:var(--cor-fraca)}
+.lado nav b{position:absolute;top:2px;left:calc(50% + 6px);font-size:10px;padding:0 5px;min-width:17px;line-height:16px;background:var(--cor);color:#fff}.lado nav a[data-v=fontes] b,.lado nav a[data-v=desc] b{display:none}
+main{padding:16px 12px calc(84px + env(safe-area-inset-bottom))}
+h1{font-size:21px}.ola{padding:18px;border-radius:14px}.ola h1{font-size:21px}
+.resumo{grid-template-columns:1fr 1fr;gap:8px}.card{padding:12px}.card b{font-size:22px}
+.grade{grid-template-columns:1fr}.painel{padding:14px 16px}
+.vaga,.cand{padding:16px;border-radius:14px;margin:10px 0}
+.vaga header{gap:12px}.nota{width:52px;height:52px}.nota b{font-size:19px}.tit{min-width:0;flex:1 1 calc(100% - 70px)}
+.vaga .acoes-vaga,.destaque .acoes-vaga{flex:1 1 100%;flex-direction:row;flex-wrap:wrap;gap:8px}
+.acoes-vaga .btn{flex:1 1 100%;padding:12px;font-size:15px;text-align:center}.acoes-vaga .sec{flex:1 1 calc(50% - 4px);padding:10px 8px;font-size:14px}
+.sec,.btn{min-height:42px}.chip{padding:7px 13px}summary{padding:4px 0}
+input,select,textarea{font-size:16px!important}
+.ia-form{flex-direction:column;align-items:stretch}.novo-passo{flex-direction:column;align-items:stretch}#nova-form{flex-direction:column;align-items:stretch}
+.passos li{padding:9px 0}.passos input{width:21px;height:21px}
+table,tbody,tr,td{display:block;width:100%}table{border:0;background:none}tr:first-child:has(th){display:none}
+tr{background:#fff;border:1px solid var(--linha);border-radius:12px;margin-bottom:8px;padding:4px 0}td{border:0;padding:6px 14px}
+.destaque{gap:12px}
+}`
 
 const aprov = r?.vagas ?? [], desc = r?.descartadas ?? [], fontes = r?.fontes ?? [];
 const naJanela = aprov.filter((v) => !v.foraDaJanela && !v.abaixoDoCorte).length;
@@ -206,17 +231,17 @@ const corpo = falhaHtml + telaInicio + telaVagas + telaCand + telaDesc + telaFon
 
 const sup = cfg.supabase ?? {};
 const paraJs = (o) => JSON.stringify(o).replace(/</g, "\\u003c");
-const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><meta name="viewport" content="width=device-width,initial-scale=1">
+const html = `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#4a0d26"><link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="apple-touch-icon.png"><link rel="icon" href="icone-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Radar"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Radar de vagas — ${br(falha || !r ? hoje : r.data)}</title><style>${css}</style></head><body>
 <div class="app">
 <aside class="lado">
   <div class="marca"><span class="logo">◎</span>Radar de vagas</div>
   <nav>
-    <a href="#inicio" data-v="inicio" class="ativo">Início</a>
-    <a href="#vagas" data-v="vagas">Vagas de hoje <b>${aprov.length + semNota.length || ""}</b></a>
-    <a href="#candidaturas" data-v="cand">Minhas candidaturas <b id="nav-pend"></b></a>
-    <a href="#descartadas" data-v="desc">Descartadas <b>${desc.length || ""}</b></a>
-    <a href="#fontes" data-v="fontes">Fontes <b>${fontes.length ? `${fontes.filter((f) => f.ok).length}/${fontes.length}` : ""}</b></a>
+    <a href="#inicio" data-v="inicio" class="ativo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8M5 9.5V21h5v-6h4v6h5V9.5"/></svg><span>Início</span></a>
+    <a href="#vagas" data-v="vagas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v13H4zM9 7V4h6v3M4 12h16"/></svg><span>Vagas<i> de hoje</i></span> <b>${aprov.length + semNota.length || ""}</b></a>
+    <a href="#candidaturas" data-v="cand"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6v3H9zM7 5H5v16h14V5h-2M8.5 13l2.5 2.5 4.5-5"/></svg><span><i>Minhas c</i><em>C</em>andidaturas</span> <b id="nav-pend"></b></a>
+    <a href="#descartadas" data-v="desc"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6"/></svg><span>Descartadas</span> <b>${desc.length || ""}</b></a>
+    <a href="#fontes" data-v="fontes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 100 18 9 9 0 000-18zM3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg><span>Fontes</span> <b>${fontes.length ? `${fontes.filter((f) => f.ok).length}/${fontes.length}` : ""}</b></a>
   </nav>
   <div class="fim"><div class="conta" id="conta"></div><p>Atualizado todo dia às 9h e às 15h. Nada é enviado: você revisa e você se candidata.</p></div>
 </aside>
@@ -456,5 +481,6 @@ if (SUP.url && SUP.chave) {
 </script></body></html>`;
 fs.mkdirSync(path.join(raiz, "site"), { recursive: true });
 fs.writeFileSync(path.join(raiz, "site/index.html"), html);
+for (const a of fs.readdirSync(path.join(raiz, "estatico"))) fs.copyFileSync(path.join(raiz, "estatico", a), path.join(raiz, "site", a)); // ícones e manifest (instalar na tela inicial)
 if (r) fs.writeFileSync(path.join(raiz, "site/rodada.json"), JSON.stringify(r)); // a próxima rodada reaproveita as avaliações
 console.log("site/index.html gerado" + (falha ? " (com aviso de falha)" : ""));
