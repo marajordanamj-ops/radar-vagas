@@ -40,7 +40,7 @@ function ficha(v, n) {
       <p class="emp">${esc(v.empresa)}</p>
       <p class="tags"><span${/presencial|h[ií]brid/i.test(v.modalidade || "") ? ' class="alerta"' : ""}>${esc(v.modalidade)}</span><span>${esc(v.contrato)}</span><span>${esc(v.fonte)}</span><span>${esc(idade(v))}</span>${v.abaixoDoCorte ? '<span class="alerta">abaixo do corte de 70</span>' : ""}</p>
     </div>
-    <div class="acoes-vaga"><a class="btn" href="${esc(v.link)}" target="_blank" rel="noopener">Abrir vaga ↗</a><button class="sec ja" data-i="${n}" hidden>Já me candidatei</button></div>
+    <div class="acoes-vaga"><a class="btn" href="${esc(v.link)}" target="_blank" rel="noopener">Abrir vaga ↗</a><button class="sec ja" data-i="${n}" hidden>Já me candidatei</button><button class="sec nao" data-i="${n}" hidden>Não tenho interesse</button></div>
   </header>
   <p class="just">${esc(v.justificativa)}</p>
   <details open><summary>Pontos de atenção</summary><ul>${(v.atencao ?? []).map((a) => `<li>${esc(a)}</li>`).join("")}</ul></details>
@@ -91,7 +91,7 @@ h2{font-size:16px;margin:26px 0 10px}h3{font-size:17px;margin:0;line-height:1.3}
 .tags .alerta,.chips.falta span{background:#fff7ed;color:#9a3412}
 .btn{font:inherit;font-size:14px;font-weight:600;background:var(--cor);color:#fff;border:0;border-radius:8px;padding:8px 16px;cursor:pointer;text-decoration:none;white-space:nowrap;display:inline-block}
 .sec{font:inherit;font-size:13.5px;font-weight:500;border:1px solid #d1d5db;background:#fff;color:var(--tinta);border-radius:8px;padding:6px 13px;cursor:pointer;margin-top:6px}.sec:hover{border-color:var(--cor);color:var(--cor)}
-.acoes-vaga{display:flex;flex-direction:column;gap:6px;align-items:stretch;text-align:center}.acoes-vaga .sec{margin:0}
+.acoes-vaga{display:flex;flex-direction:column;gap:6px;align-items:stretch;text-align:center}.acoes-vaga .sec{margin:0}.acoes-vaga .nao{color:var(--suave)}.oculta{display:none!important}
 .just{margin:14px 0 8px;font-size:15.5px}details{border-top:1px solid var(--linha);padding:10px 0}summary{cursor:pointer;font-weight:600;font-size:14.5px}
 details ul{margin:8px 0 0;padding-left:20px}.carta{background:#f9fafb;border:1px solid var(--linha);border-radius:10px;padding:2px 16px;margin-top:8px}.dica{color:var(--suave);font-size:13.5px;margin:6px 0}
 .ia{margin-top:12px;background:var(--cor-fraca);border-radius:12px;padding:14px 16px}.ia h4{margin:0 0 6px;font-size:14.5px;color:#9d174d}
@@ -137,7 +137,7 @@ function fichaSemNota(v0, k) {
       <p class="emp">${esc(v.empresa)}</p>
       <p class="tags"><span class="alerta">sem avaliação</span>${v.modalidade ? `<span${/presencial|h[ií]brid|on.?site/i.test(v.modalidade) ? ' class="alerta"' : ""}>${esc(v.modalidade)}</span>` : ""}${v.local ? `<span>${esc(v.local)}</span>` : ""}<span>${esc(v.fonte)}</span><span>${esc(idade(v))}</span></p>
     </div>
-    <div class="acoes-vaga"><a class="btn" href="${esc(v.link)}" target="_blank" rel="noopener">Abrir vaga ↗</a><button class="sec ja" data-i="${n}" hidden>Já me candidatei</button></div>
+    <div class="acoes-vaga"><a class="btn" href="${esc(v.link)}" target="_blank" rel="noopener">Abrir vaga ↗</a><button class="sec ja" data-i="${n}" hidden>Já me candidatei</button><button class="sec nao" data-i="${n}" hidden>Não tenho interesse</button></div>
   </header>
   <p class="dica">O Gemini não respondeu nesta rodada, então esta vaga ainda não tem nota nem candidatura. Ela passou pelos filtros de cargo, data e modalidade. A próxima rodada tenta avaliar de novo.</p>
 </article>`;
@@ -157,7 +157,7 @@ const telaInicio = `<section class="view" id="v-inicio">
   <div class="card link" data-ir="fontes"><b>${fontes.filter((f) => f.ok).length}/${fontes.length}</b><span>fontes responderam</span></div>
 </div>
 <div class="painel" style="margin-bottom:14px"><h2>Destaque do dia</h2>
-${top ? `<div class="destaque ${classe(top.nota)}"><div class="nota"><b>${top.nota}</b><span>de 100</span></div><div class="tit"><h3>${esc(top.cargo)}</h3><p class="emp" style="margin:2px 0 0">${esc(top.empresa)} · ${esc(top.modalidade)} · ${esc(top.contrato)}</p></div><div class="acoes-vaga"><button class="btn" data-ir="vagas">Ver detalhes</button><a class="sec" style="margin:0;text-decoration:none" href="${esc(top.link)}" target="_blank" rel="noopener">Abrir vaga ↗</a></div></div>` : (semNota.length ? `<div class="vazio">${semNota.length} vaga(s) nova(s) ainda sem avaliação, porque o Gemini não respondeu. <button class="sec" data-ir="vagas">Ver vagas</button></div>` : '<div class="vazio">Nenhuma vaga nova passou do corte nesta rodada.</div>')}
+${top ? `<div class="destaque ${classe(top.nota)}" data-link="${esc(top.link)}"><div class="nota"><b>${top.nota}</b><span>de 100</span></div><div class="tit"><h3>${esc(top.cargo)}</h3><p class="emp" style="margin:2px 0 0">${esc(top.empresa)} · ${esc(top.modalidade)} · ${esc(top.contrato)}</p></div><div class="acoes-vaga"><button class="btn" data-ir="vagas">Ver detalhes</button><a class="sec" style="margin:0;text-decoration:none" href="${esc(top.link)}" target="_blank" rel="noopener">Abrir vaga ↗</a></div></div>` : (semNota.length ? `<div class="vazio">${semNota.length} vaga(s) nova(s) ainda sem avaliação, porque o Gemini não respondeu. <button class="sec" data-ir="vagas">Ver vagas</button></div>` : '<div class="vazio">Nenhuma vaga nova passou do corte nesta rodada.</div>')}
 </div>
 <div class="grade">
   <div class="painel"><h2>Próximos passos</h2><div id="ini-passos"><div class="vazio">Entre para ver seus passos.</div></div></div>
@@ -190,7 +190,10 @@ const telaCand = `<section class="view" id="v-cand" hidden>
 </section>`;
 
 const telaDesc = `<section class="view" id="v-desc" hidden>
-<header><h1>Descartadas</h1><p class="sub">Vagas encontradas na rodada que ficaram de fora, e o motivo de cada uma.</p></header>
+<header><h1>Descartadas</h1><p class="sub">As vagas que você marcou como sem interesse e as que o radar deixou de fora nesta rodada.</p></header>
+<h2>Sem interesse (marcadas por você)</h2>
+<div id="sem-int"><div class="vazio">Entre para ver as vagas que você descartou.</div></div>
+<h2>Deixadas de fora pelo radar</h2>
 ${desc.length ? `<table><tr><th>Vaga</th><th>Fonte / data</th><th>Motivo</th></tr>${desc.map((d) => `<tr><td><b>${d.link ? `<a href="${esc(d.link)}" target="_blank" rel="noopener">${esc(d.cargo)}</a>` : esc(d.cargo)}</b><br>${esc(d.empresa)}</td><td>${esc(d.fonte)}<br>${esc(d.data)}</td><td>${esc(d.motivo)}</td></tr>`).join("")}</table>` : '<div class="vazio">Nenhuma vaga descartada nesta rodada.</div>'}
 </section>`;
 
@@ -323,7 +326,19 @@ document.addEventListener("submit", (e) => {
 const escH = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const dataBr = (d) => (d ? d.split("-").reverse().join("/") : "");
 const SITUACOES = ["Em andamento", "Aguardando retorno", "Entrevista marcada", "Aprovada", "Encerrada"];
-let minhasCand = [];
+let minhasCand = [], semInt = [];
+const nrmV = (t) => String(t || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+const mesmaVaga = (a, b) => a.link === b.link || (nrmV(a.empresa) && nrmV(a.empresa) === nrmV(b.empresa) && nrmV(a.cargo) === nrmV(b.cargo));
+function aplicarSemInteresse() {
+  for (const art of $$(".vaga")) { const v = VAGAS[Number(art.dataset.i)]; if (v) art.classList.toggle("oculta", semInt.some((x) => mesmaVaga(x, v))); }
+  const d = $(".destaque[data-link]"); if (d) d.classList.toggle("oculta", semInt.some((x) => x.link === d.dataset.link));
+  const box = $("#sem-int"); if (!box) return;
+  if (!sessao) { box.innerHTML = '<div class="vazio">Entre para ver as vagas que você descartou.</div>'; return; }
+  box.innerHTML = semInt.length ? "<table><tr><th>Vaga</th><th>Descartada em</th><th></th></tr>" + semInt.map((x) =>
+    "<tr><td><b>" + (x.link ? '<a href="' + escH(x.link) + '" target="_blank" rel="noopener">' + escH(x.cargo) + "</a>" : escH(x.cargo)) + "</b><br>" + escH(x.empresa) + "</td><td>" + dataBr(x.criado_em.slice(0, 10)) +
+    '</td><td><button class="sec desfazer" data-id="' + x.id + '">Desfazer</button></td></tr>').join("") + "</table>"
+    : '<div class="vazio">Você ainda não marcou nenhuma vaga como sem interesse.</div>';
+}
 function pintarInicio(data) {
   const pend = $("#ini-pend"), cand = $("#ini-cand"), boxP = $("#ini-passos"), boxZ = $("#ini-prazos");
   if (!pend) return;
@@ -347,9 +362,11 @@ function pintarInicio(data) {
 }
 async function carregarMinhas() {
   const sec = $("#minhas"); if (!sec) return;
-  $$(".ja").forEach((b) => (b.hidden = !sessao));
+  $$(".ja, .nao").forEach((b) => (b.hidden = !sessao));
   $("#minhas-off").hidden = !!(sb && sessao);
-  if (!sb || !sessao) { sec.hidden = true; $("#nav-pend").textContent = ""; pintarInicio(null); return; }
+  if (!sb || !sessao) { sec.hidden = true; $("#nav-pend").textContent = ""; pintarInicio(null); semInt = []; aplicarSemInteresse(); return; }
+  const si = await sb.from("sem_interesse").select("*").order("criado_em", { ascending: false });
+  semInt = si.data ?? []; aplicarSemInteresse();
   sec.hidden = false;
   const { data, error } = await sb.from("candidaturas").select("*, passos(*)").order("candidatou_em", { ascending: false });
   const lista = $("#minhas-lista");
@@ -393,6 +410,16 @@ document.addEventListener("click", async (e) => {
   const c = e.target.closest(".cand");
   if (c && e.target.matches(".x")) { falhou((await sb.from("passos").delete().eq("id", e.target.closest("li").dataset.p)).error); carregarMinhas(); }
   if (c && e.target.matches(".apagar") && confirm("Excluir esta candidatura e os passos dela?")) { falhou((await sb.from("candidaturas").delete().eq("id", c.dataset.id)).error); carregarMinhas(); }
+  const nao = e.target.closest(".nao");
+  if (nao) {
+    const v = VAGAS[Number(nao.dataset.i)], art = nao.closest(".vaga");
+    art.classList.add("oculta");
+    const { data, error } = await sb.from("sem_interesse").upsert({ link: v.link, empresa: v.empresa, cargo: v.cargo }, { onConflict: "user_id,link" }).select().single();
+    if (falhou(error)) { art.classList.remove("oculta"); return; }
+    semInt = [data, ...semInt.filter((x) => x.id !== data.id)]; aplicarSemInteresse();
+  }
+  const dz = e.target.closest(".desfazer");
+  if (dz) { if (falhou((await sb.from("sem_interesse").delete().eq("id", dz.dataset.id)).error)) return; semInt = semInt.filter((x) => x.id !== dz.dataset.id); aplicarSemInteresse(); }
   const ja = e.target.closest(".ja");
   if (ja) {
     const v = VAGAS[Number(ja.dataset.i)];
