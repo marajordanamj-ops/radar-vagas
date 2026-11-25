@@ -103,7 +103,7 @@ table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(-
 th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--linha);vertical-align:top}tr:last-child td{border-bottom:0}th{background:#f9fafb;color:var(--suave);font-weight:600;font-size:12.5px;text-transform:uppercase;letter-spacing:.03em}.ok{color:var(--verde);font-weight:600}.nok{color:var(--verm);font-weight:600}
 dialog{border:0;border-radius:14px;padding:24px;width:min(380px,92vw);box-shadow:0 20px 60px rgba(74,13,38,.35)}dialog::backdrop{background:rgba(74,13,38,.55)}
 dialog h3{margin-bottom:12px}dialog label{display:block;font-size:13.5px;color:var(--suave);margin-top:10px}dialog input{width:100%;font:inherit;border:1px solid #d1d5db;border-radius:8px;padding:9px 12px}
-dialog .acoes{display:flex;gap:8px;justify-content:flex-end;align-items:center;margin-top:16px}dialog .acoes .sec{margin:0}#login-erro{color:var(--verm);font-size:13.5px;min-height:20px;margin:8px 0 0}
+dialog .acoes{display:flex;gap:8px;justify-content:flex-end;align-items:center;margin-top:16px}dialog .acoes .sec{margin:0}#login-erro,#ns-erro{color:var(--verm);font-size:13.5px;min-height:20px;margin:8px 0 0}#login-erro.ok{color:var(--verde)}.link-sec{border:0;background:none;color:var(--cor);font:inherit;font-size:13.5px;padding:4px 0;cursor:pointer;text-decoration:underline}
 .vazio{background:#fff;border:1px dashed #d1d5db;border-radius:12px;padding:22px;color:var(--suave);text-align:center}
 #pendentes{font-size:12.5px;font-weight:600;background:var(--cor-fraca);color:#9d174d;border-radius:999px;padding:2px 10px;margin-left:8px;vertical-align:middle}#pendentes:empty{display:none}
 .cand{background:#fff;border:1px solid var(--linha);border-radius:14px;padding:18px 22px;margin:12px 0}.cand.fim{opacity:.65}
@@ -255,7 +255,16 @@ ${corpo}
   <label>E-mail<input type="email" id="login-email" autocomplete="username" required></label>
   <label>Senha<input type="password" id="login-senha" autocomplete="current-password" required></label>
   <p id="login-erro"></p>
+  <button type="button" class="link-sec" id="esqueci">Esqueci minha senha</button>
   <div class="acoes"><button type="button" class="sec" id="login-cancelar">Cancelar</button><button class="btn" type="submit">Entrar</button></div>
+</form></dialog>
+<dialog id="nova-senha"><form method="dialog" id="nova-senha-form">
+  <h3>Criar nova senha</h3>
+  <p class="dica">Escolha uma senha com pelo menos 8 caracteres.</p>
+  <label>Nova senha<input type="password" id="ns-1" autocomplete="new-password" minlength="8" required></label>
+  <label>Repita a nova senha<input type="password" id="ns-2" autocomplete="new-password" minlength="8" required></label>
+  <p id="ns-erro"></p>
+  <div class="acoes"><button class="btn" type="submit">Salvar senha</button></div>
 </form></dialog>
 <script type="module">
 const RODADA = ${paraJs(falha || !r ? "" : r.data)};
@@ -278,7 +287,7 @@ function mostrar(v) {
   if (!NOMES[v]) v = "inicio";
   for (const t of $$(".view")) t.hidden = t.id !== "v-" + v;
   for (const a of $$(".lado nav a")) a.classList.toggle("ativo", a.dataset.v === v);
-  if (location.hash !== "#" + NOMES[v]) history.replaceState(null, "", "#" + NOMES[v]);
+  if (location.hash !== "#" + NOMES[v] && !/access_token|error_description/.test(location.hash)) history.replaceState(null, "", "#" + NOMES[v]);
   window.scrollTo(0, 0);
 }
 document.addEventListener("click", (e) => { const a = e.target.closest(".lado nav a"); if (a) { e.preventDefault(); mostrar(a.dataset.v); } });
@@ -341,6 +350,23 @@ $("#login-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const { error } = await sb.auth.signInWithPassword({ email: $("#login-email").value.trim(), password: $("#login-senha").value });
   if (error) $("#login-erro").textContent = "E-mail ou senha incorretos."; else { $("#login-senha").value = ""; $("#login").close(); }
+});
+// esqueci minha senha: o Supabase manda um link para o e-mail; ao voltar por ele, o site pede a senha nova
+$("#esqueci").addEventListener("click", async () => {
+  const erro = $("#login-erro"), email = $("#login-email").value.trim();
+  erro.className = "";
+  if (!email) { erro.textContent = "Digite seu e-mail acima e toque de novo em Esqueci minha senha."; return; }
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
+  if (error) { erro.textContent = "Não consegui enviar o link: " + error.message; return; }
+  erro.className = "ok"; erro.textContent = "Pronto! Enviamos um link para " + email + ". Abra o e-mail (veja também o spam) e toque no link para criar a senha nova.";
+});
+$("#nova-senha-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const a = $("#ns-1").value, b = $("#ns-2").value, erro = $("#ns-erro");
+  if (a !== b) { erro.textContent = "As duas senhas não são iguais."; return; }
+  const { error } = await sb.auth.updateUser({ password: a });
+  if (error) { erro.textContent = "Não consegui salvar: " + error.message; return; }
+  $("#ns-1").value = $("#ns-2").value = ""; $("#nova-senha").close(); alert("Senha nova salva. Você já está conectada.");
 });
 document.addEventListener("submit", (e) => {
   const f = e.target.closest(".ia-form"); if (!f) return; e.preventDefault();
@@ -471,10 +497,14 @@ document.addEventListener("submit", async (e) => {
 pintar();
 if (SUP.url && SUP.chave) {
   try {
+    const recuperando = /type=recovery/.test(location.hash);
+    const erroLink = new URLSearchParams(location.hash.slice(1)).get("error_description");
+    if (erroLink) { history.replaceState(null, "", location.pathname + "#inicio"); alert("O link do e-mail não funcionou (" + erroLink + "). Ele vale por pouco tempo e só uma vez: peça outro em Entrar > Esqueci minha senha."); }
     const { createClient } = await import("https://esm.sh/@supabase/supabase-js@2");
     sb = createClient(SUP.url, SUP.chave);
     sessao = (await sb.auth.getSession()).data.session;
-    sb.auth.onAuthStateChange((_e, s) => { sessao = s; pintar(); setTimeout(carregarMinhas, 0); });
+    sb.auth.onAuthStateChange((ev, s) => { sessao = s; pintar(); setTimeout(carregarMinhas, 0); if (ev === "PASSWORD_RECOVERY") $("#nova-senha").showModal(); });
+    if (recuperando && sessao) { history.replaceState(null, "", location.pathname + "#inicio"); $("#nova-senha").showModal(); }
   } catch (e) { console.error(e); }
   pintar(); carregarMinhas();
 }
